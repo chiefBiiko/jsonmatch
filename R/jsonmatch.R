@@ -22,12 +22,13 @@ jsonmatch <- function(json, pattern) {
     curr <- json  # reduction base
     # reduce curr to target value
     for (ii in 1L:length(tsp[[i]])) {
-      if (is.character(tsp[[i]][[ii]])) {
+      if (is.character(tsp[[i]][[ii]])) {  # either chr keys or numeric indices
         curr <- extractValueFromObjKey(curr, tsp[[i]][[ii]])
-      } else {
+      } else {                             # numeric array indices
         xtrc <- sapply(tsp[[i]][[ii]], function(int) {
           extractValueFromArrIndex(curr, int)
         })
+        # only quote string literals within json
         curr <- gsub('([^[:alpha:]])","([^[:alpha:]])', '\\1,\\2', 
                      paste0(xtrc, collapse='","'), perl=TRUE)
       }
@@ -37,14 +38,16 @@ jsonmatch <- function(json, pattern) {
     if (i > length(tsp)) break  # trapdoor
   }
   # package and return
-  rtn <- if (length(accu) > 1L) {
-    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {
+  rtn <- if (length(accu) > 1L) {  # case multiple target values
+    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # case array
       paste0('[', paste0(packAtoms(accu), collapse=','), ']')
-    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {
-      paste0('{', paste0(packAtoms(accu, gsub('.', '', spl, fixed=TRUE)), 
-                         collapse=','), '}')
+    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # case object
+      paste0('{', 
+             paste0(packAtoms(accu, gsub('.', '', spl, fixed=TRUE)), 
+                    collapse=','), 
+             '}')
     }
-  } else {
+  } else {                         # case single target value
     packAtoms(accu)
   }
   return(structure(rtn, class='json'))
