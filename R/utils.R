@@ -9,8 +9,6 @@ isTruthyChar <- function(string) {
   }
 }
 
-
-
 #' Takes a split vector of dirty object keys and array indices and returns
 #'  a 2d list providing symbols as required by \code{extractValueFrom*}.
 #' 
@@ -41,9 +39,9 @@ transformSubsetPattern <- function(split.pattern) {
 #' @return Character vector of class 'json'
 #'
 #' @internal
-extractValueFromIndex <- function(json, index) {  # zero-indexed !!!
+extractValueFromArrIndex <- function(json, index) {  # zero-indexed !!!
   stopifnot(isTruthyChar(json), is.numeric(index), index %% 1L == 0L)
-  qdjson <- gsub('(\\d+)(?!")', '"\\1"', json, perl=TRUE)
+  qdjson <- gsub('(\\d+|null|false)(?!")', '"\\1"', json, perl=TRUE)
   chars <- strsplit(qdjson, '')[[1]]
   CONT <- c('"', '[', '{')
   cnt <- 0L
@@ -63,7 +61,7 @@ extractValueFromIndex <- function(json, index) {  # zero-indexed !!!
     }
     pos <- pos + 1L
   }
-  stop('error')
+  stop('invalid JSON')
 }
 
 #' Extracts the item at given key of an JSON object
@@ -73,7 +71,7 @@ extractValueFromIndex <- function(json, index) {  # zero-indexed !!!
 #' @return Character vector of class 'json'
 #' 
 #' @internal
-extractValueFromKey <- function(json, key) {
+extractValueFromObjKey <- function(json, key) {
   stopifnot(isTruthyChar(json), isTruthyChar(key),
             grepl(paste0('"', key,'":'), json, perl=TRUE))
   chars <- strsplit(json, '')[[1]]
@@ -87,7 +85,7 @@ extractValueFromKey <- function(json, key) {
                                 substr(json, beg, pos - 1L),
                                 perl=TRUE))
   }
-  stop('error')
+  stop('invalid JSON')
 }
 
 #' Packs atomic data in arrays, optionally adding keys
@@ -102,7 +100,12 @@ packAtoms <- function(accumulator, keys) {
   return(if (missing(keys)) {
     sapply(accumulator, function(a) {
       if (!grepl('^\\[|\\{.*\\]|\\}$', a, perl=TRUE)) {
-        paste0('[', a, ']') 
+        if (grepl('^[[:alpha:]]', a, perl=TRUE) &&
+            !grepl('^null$|^false$', a, perl=TRUE)) {
+          paste0('["', a, '"]') 
+        } else {
+          paste0('[', a, ']')
+        }
       } else {
         a
       }

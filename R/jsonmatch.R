@@ -1,9 +1,12 @@
 # jsonmatch
 
+# TODO: -erase all \\s in input json and let em know
+#       -checkstop that pattern is valid
+
 #' Simple matching on JSON
 #' 
 #' @details Parameter \code{pattern} allows matching keys of a JSON 
-#' object \code{.key}, and keys/indices of a JSON array \code{[0,3] or [0:5]}.
+#' object \code{.key}, and keys/indices of a JSON array \code{[0,3,5] or [0:5]}.
 #' 
 #' 
 #' @export
@@ -20,11 +23,13 @@ jsonmatch <- function(json, pattern) {
     # reduce curr to target value
     for (ii in 1L:length(tsp[[i]])) {
       if (is.character(tsp[[i]][[ii]])) {
-        curr <- extractValueFromKey(curr, tsp[[i]][[ii]])
+        curr <- extractValueFromObjKey(curr, tsp[[i]][[ii]])
       } else {
-        curr <- paste0(sapply(tsp[[i]][[ii]], function(int) {
-          extractValueFromIndex(curr, int)
-        }), collapse='')
+        xtrc <- sapply(tsp[[i]][[ii]], function(int) {
+          extractValueFromArrIndex(curr, int)
+        })
+        curr <- gsub('([^[:alpha:]])","([^[:alpha:]])', '\\1,\\2', 
+                     paste0(xtrc, collapse='","'), perl=TRUE)
       }
     }
     accu[i] <- curr             # store target value
@@ -32,7 +37,7 @@ jsonmatch <- function(json, pattern) {
     if (i > length(tsp)) break  # trapdoor
   }
   # package and return
-  return(structure(if (length(accu) > 1L) {
+  rtn <- if (length(accu) > 1L) {
     if (grepl('^\\[.*\\]$', json, perl=TRUE)) {
       paste0('[', paste0(packAtoms(accu), collapse=','), ']')
     } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {
@@ -41,5 +46,6 @@ jsonmatch <- function(json, pattern) {
     }
   } else {
     packAtoms(accu)
-  }, class='json'))
+  }
+  return(structure(rtn, class='json'))
 }
