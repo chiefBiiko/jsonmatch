@@ -2,37 +2,44 @@
 
 #' Simple matching on JSON
 #' 
-#' @details Parameter \code{pattern} allows matching properties of a JSON 
-#' object \code{$prop}, and items of a JSON array. Wildcard matching is 
-#' not yet supported.
-#'  
-#' \code{c(i, i, i) and c(i:i)}.
+#' @details Parameter \code{pattern} allows matching keys of a JSON 
+#' object \code{.key}, and keys/indices of a JSON array \code{[0,3] or [0:5]}.
+#' 
 #' 
 #' @export
 jsonmatch <- function(json, pattern) {
   stopifnot(isTruthyChar(json), isTruthyChar(pattern))
-  y <- jsonlite::fromJSON(json)
-  spl <- Filter(function(p) p != '',
-                strsplit(pattern, '$', fixed=TRUE)[[1]])
-  # get subset indicators
-  pn <- lapply(spl, function(p) {
-    if (grepl('^c\\(.+\\)$', p, perl=TRUE)) {
-      eval(parse(text=p))
-    } else {
-      p
+  # split and transform arg pattern
+  spl <- Filter(function(p) p != '', strsplit(pattern, ',', fixed=TRUE)[[1]])
+  tsp <- transformSubsetPattern(spl)
+  # iterate and reduce to target value(s)
+  i <- 1L
+  accu <- vector('character', length(tsp))
+  repeat {
+    curr <- json  # reduction base
+    # reduce curr to target value
+    for (ii in 1L:length(tsp[[i]])) {
+      if (is.character(tsp[[i]][[ii]])) {
+        curr <- extractValueFromKey(curr, tsp[[i]][[ii]])
+      } else {
+        curr <- paste0(sapply(tsp[[i]][[ii]], function(int) {
+          extractValueFromIndex(curr, int)
+        }), collapse='')
+      }
     }
-  })
-  # setup return           
-  rtn <- lapply(y, function(yy) NULL)
-  # push values
-  for (i in 1L:length(pn)) {
-    if (is.character(pn[[i]])) {
-      rtn[[pn[[i]]]] <- y[[pn[[i]]]] 
-    } else if (is.numeric(pn[[i]])) {
-      rtn[pn[[i]]] <- y[pn[[i]]]
-    }
+    accu[i] <- curr             # store target value
+    i <- i + 1L                 # increment
+    if (i > length(tsp)) break  # trapdoor
   }
-  out <- Filter(Negate(function(r) is.null(unlist(r))), rtn)
-  cout <- jsonlite::toJSON(if (is.list(y)) out else unlist(out))
-  return(cout)
+  # package and return
+  return(structure(if (length(accu) > 1L) {
+    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {
+      paste0('[', paste0(packAtoms(accu), collapse=','), ']')
+    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {
+      paste0('{', paste0(packAtoms(accu, gsub('.', '', spl, fixed=TRUE)), 
+                         collapse=','), '}')
+    }
+  } else {
+    packAtoms(accu)
+  }, class='json'))
 }
