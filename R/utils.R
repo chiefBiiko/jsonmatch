@@ -115,7 +115,12 @@ packAtoms <- function(accumulator, keys) {
     sapply(accumulator, function(a) {
       i <<- i + 1L
       if (!grepl('^\\[|\\{.*\\]|\\}$', a, perl=TRUE)) {
-        paste0(paste0('"', keys[i], '"', ':'), '[', a, ']') 
+        if (grepl('^[[:alpha:]]', a, perl=TRUE) &&
+            !grepl('^null$|^false$', a, perl=TRUE)) {
+          paste0(paste0('"', keys[i], '"', ':'), '["', a, '"]')
+        } else {
+          paste0(paste0('"', keys[i], '"', ':'), '[', a, ']')
+        }
       } else {
         paste0(paste0('"', keys[i], '"', ':'), a) 
       }

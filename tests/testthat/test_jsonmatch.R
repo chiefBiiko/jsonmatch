@@ -21,7 +21,7 @@ testthat::test_that('return matches pattern', {
   # multiple items pt2
   testthat::expect_identical(jsonmatch(saka, '.b[0],c'),
                              structure(
-                               '{"b[0]":[zu],"c":{"x":[4],"y":[1],"z":[9]}}',
+                               '{"b[0]":["zu"],"c":{"x":[4],"y":[1],"z":[9]}}',
                                class='json'
                              ))
   
