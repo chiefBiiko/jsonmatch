@@ -1,12 +1,47 @@
 # jsonmatch utils
 
 #' @internal
-isTruthyChar <- function(string) {
-  if (is.character(string) && nchar(string) > 0L) {
+isTruthyChr <- function(char) {
+  if (is.character(char) && nchar(char) > 0L) {
     return(TRUE)
   } else {
     return(FALSE)
   }
+}
+
+#' Performs a syntax check on pattern
+#' 
+#' @param json JSON string
+#' @param pattern Chr vector of length 1 specifying the subset pattern
+#' @return Logical indicating whether the syntax is correct
+#' 
+#' @internal
+verifyPatternSyntax <- function(json, pattern) {
+  # root structure
+  struct <- if (grepl('^\\[.*\\]$', json, perl=TRUE)) {  # case arr
+    strsplit(pattern, '', fixed=TRUE)[[1]][1] == '['
+  } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {     # case obj
+    strsplit(pattern, '', fixed=TRUE)[[1]][1] == '.'
+  }
+  # check 4 invalid characters
+  valid <- !grepl('[^\\.,:\\[\\]\\d[A-Za-z]]*', pattern, perl=TRUE)
+  # early exit
+  if (!struct || !valid) return(FALSE)
+  # setup syntax check
+  rex <- '^(\\.[A-Za-z]+)|^(\\[\\d+(,\\d+)*(:\\d+)*\\])'  # master regex
+  accu <- vector('logical')                               # accumulator
+  comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
+  for (i in 1L:length(comps)) {                           # do em all
+    red <- comps[i]                                       # reduction base
+    repeat {                                              # do predicate reduction
+      append(accu, grepl(rex, red, perl=TRUE))        # check head
+      red <- sub(rex, '', red, perl=TRUE)             # cut head
+      if (nchar(red) == 0L) break                     # trapdoor
+      if (!grepl(rex, red, perl=TRUE)) return(FALSE)  # invalid
+    }  
+  }
+  # exit
+  return(all(accu))
 }
 
 #' Takes a split vector of dirty object keys and array indices and returns
@@ -18,8 +53,10 @@ isTruthyChar <- function(string) {
 #' @internal
 transformSubsetPattern <- function(split.pattern) {
   comps <- strsplit(split.pattern, '(?=[[:alpha:]])', perl=TRUE)
-  nodots <- lapply(comps, function(comp) comp[comp != '.'])
-  #print(nodots)
+  nodots <- lapply(comps, function(comp) {
+    comp <- gsub('.', '', comp, fixed=TRUE)
+    comp[comp != '']
+  })
   subseq <- lapply(nodots, function(nd) {
     lapply(nd, function(d) {
       if (grepl('\\[[[:digit:],:]+\\]', d, perl=TRUE)) {
@@ -36,11 +73,11 @@ transformSubsetPattern <- function(split.pattern) {
 #'
 #' @param json JSON array
 #' @param index Array index/key for which to retrieve value, zero-indexed.
-#' @return Character vector of class 'json'
+#' @return Character vector
 #'
 #' @internal
 extractValueFromArrIndex <- function(json, index) {  # zero-indexed !!!
-  stopifnot(isTruthyChar(json), is.numeric(index), index %% 1L == 0L)
+  stopifnot(isTruthyChr(json), is.numeric(index), index %% 1L == 0L)
   qdjson <- gsub('(\\d+|null|false)(?!")', '"\\1"', json, perl=TRUE)
   chars <- strsplit(qdjson, '')[[1]]
   CONT <- c('"', '[', '{')
@@ -68,11 +105,11 @@ extractValueFromArrIndex <- function(json, index) {  # zero-indexed !!!
 #'
 #' @param json JSON object
 #' @param key Key for which to retrieve value.
-#' @return Character vector of class 'json'
+#' @return Character vector
 #' 
 #' @internal
 extractValueFromObjKey <- function(json, key) {
-  stopifnot(isTruthyChar(json), isTruthyChar(key),
+  stopifnot(isTruthyChr(json), isTruthyChr(key),
             grepl(paste0('"', key,'":'), json, perl=TRUE))
   chars <- strsplit(json, '')[[1]]
   beg <- pos <- regexpr(paste0('"', key,'":'), json)[1] + nchar(key) + 3L
@@ -81,9 +118,9 @@ extractValueFromObjKey <- function(json, key) {
     if (chars[pos] %in% c('[', '{')) opbr <- opbr + 1L
     if (chars[pos] %in% c(']', '}')) opbr <- opbr - 1L
     pos <- pos + 1L
-    if (opbr == 0L) return(gsub('^"|"$', '',
-                                substr(json, beg, pos - 1L),
-                                perl=TRUE))
+    if (opbr == 0L) {
+      return(gsub('^"|"$', '', substr(json, beg, pos - 1L), perl=TRUE))
+    }
   }
   stop('invalid JSON')
 }
@@ -97,6 +134,8 @@ extractValueFromObjKey <- function(json, key) {
 #'
 #' @internal
 packAtoms <- function(accumulator, keys) {
+  stopifnot(is.character(accumulator),
+            is.character(keys) | is.null(keys))
   return(if (missing(keys)) {
     sapply(accumulator, function(a) {
       if (!grepl('^\\[|\\{.*\\]|\\}$', a, perl=TRUE)) {

@@ -1,7 +1,9 @@
 # jsonmatch
 
 # TODO: -erase all \\s in input json and let em know
-#       -checkstop that pattern is valid
+#       -checkstop that pattern is valid - DONE
+#       -allow wildcard matching for obj.props
+#       -allow matching by value??
 
 #' Simple matching on JSON
 #' 
@@ -10,8 +12,9 @@
 #' 
 #' 
 #' @export
-jsonmatch <- function(json, pattern) {
-  stopifnot(isTruthyChar(json), isTruthyChar(pattern))
+jsonmatch <- function(json, pattern, by.value=FALSE) {
+  stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
+            verifyPatternSyntax(json, pattern))
   # split and transform arg pattern
   spl <- Filter(function(p) p != '', strsplit(pattern, ',', fixed=TRUE)[[1]])
   tsp <- transformSubsetPattern(spl)
