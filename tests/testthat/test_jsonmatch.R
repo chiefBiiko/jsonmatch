@@ -5,6 +5,7 @@ testthat::context('match consistency')
 testthat::test_that('return matches pattern', {
   
   # setup
+  waka <- jsonlite::toJSON(list(a=c(1,2),b=list(c(77,44), 'doo')))
   saka <- jsonlite::toJSON(list(a=FALSE, 
                                 b=c('zu', 'lu'), 
                                 c=list(x=4L, y=1L, z=9L)))
@@ -19,7 +20,7 @@ testthat::test_that('return matches pattern', {
                              structure('["zu","lu"]', class='json'))
   
   # multiple items pt2
-  testthat::expect_identical(jsonmatch(saka, '.b[0],c'),
+  testthat::expect_identical(jsonmatch(saka, '.b[0],.c'),
                              structure(
                                '{"b[0]":["zu"],"c":{"x":[4],"y":[1],"z":[9]}}',
                                class='json'
@@ -28,5 +29,9 @@ testthat::test_that('return matches pattern', {
   # js constants
   testthat::expect_identical(jsonmatch(saka, '.a'),
                              structure('[false]', class='json'))
+  
+  # multidimensional arrays still fail
+  testthat::expect_identical(jsonmatch(waka, '.b[0]'),
+                             structure('[77,44]', class='json'))
   
 })

@@ -1,9 +1,10 @@
 # jsonmatch
 
-# TODO: -erase all \\s in input json and let em know
+# TODO: -work on matching multi-D arrays !!!!!!!!!!!
+#       -erase all \\s in input json and let em know
 #       -checkstop that pattern is valid - DONE
 #       -allow wildcard matching for obj.props
-#       -allow matching by value??
+#       -allow matching by value?? -> dont like it
 
 #' Simple matching on JSON
 #' 

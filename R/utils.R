@@ -117,10 +117,10 @@ extractValueFromObjKey <- function(json, key) {
   repeat {
     if (chars[pos] %in% c('[', '{')) opbr <- opbr + 1L
     if (chars[pos] %in% c(']', '}')) opbr <- opbr - 1L
-    pos <- pos + 1L
     if (opbr == 0L) {
-      return(gsub('^"|"$', '', substr(json, beg, pos - 1L), perl=TRUE))
+      return(gsub('^"|"$', '', substr(json, beg, pos), perl=TRUE))
     }
+    pos <- pos + 1L
   }
   stop('invalid JSON')
 }
@@ -135,7 +135,7 @@ extractValueFromObjKey <- function(json, key) {
 #' @internal
 packAtoms <- function(accumulator, keys) {
   stopifnot(is.character(accumulator),
-            is.character(keys) | is.null(keys))
+            missing(keys) || is.character(keys))
   return(if (missing(keys)) {
     sapply(accumulator, function(a) {
       if (!grepl('^\\[|\\{.*\\]|\\}$', a, perl=TRUE)) {
