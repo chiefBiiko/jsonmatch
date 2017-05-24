@@ -1,7 +1,7 @@
 # jsonmatch
 
-# TODO: -erase all \\s in input json and pattern
-#       -use non-capturing regex groups where possible
+# TODO: -erase all \\s in input json - DONE
+#       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props
 #       -write a command line version of jsonmatch
 #       -work on matching multi-D arrays - DONE
@@ -19,6 +19,8 @@
 jsonmatch <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
             verifyPatternSyntax(json, pattern))
+  # strip whitespace 
+  json <- gsub('\\s+', '', json, perl=TRUE)
   # split and transform arg pattern
   spl <- Filter(function(p) p != '', strsplit(pattern, ',', fixed=TRUE)[[1]])
   tsp <- transformSubsetPattern(spl)
@@ -35,7 +37,7 @@ jsonmatch <- function(json, pattern) {
         xtrc <- sapply(key, function(int) {
           extractValueFromArrIndex(curr, int)
         })
-        # only quote string literals within json
+        # correctly quote string literals within json
         curr <- gsub('([^[:alpha:]])","([^[:alpha:]])', '\\1,\\2', 
                      paste0(xtrc, collapse='","'), perl=TRUE)
       }

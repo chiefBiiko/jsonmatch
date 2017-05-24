@@ -28,8 +28,8 @@ verifyPatternSyntax <- function(json, pattern) {
   valid <- !grepl('[^\\.,:\\[\\]\\d[A-Za-z]]*', pattern, perl=TRUE)
   # early exit
   if (!struct || !valid) return(FALSE)
-  # setup syntax check
-  rex <- '^(\\.[[:alnum:]]+)|^(\\[\\d+(,\\d+)*(:\\d+)*\\])'  # master regex
+  # setup syntax check                                       # master regex
+  rex <- '^(?:\\.[[:alnum:]]+)|^(?:\\[\\d+(?:,\\d+)*(?:\\:\\d+)*\\])'
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]           # pattern components
   for (comp in comps) {                                      # do em all
     red <- comp                                              # reduction base
