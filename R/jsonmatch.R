@@ -28,11 +28,11 @@ jsonmatch <- function(json, pattern) {
   repeat {
     curr <- json  # reduction base
     # reduce curr to target value
-    for (ii in 1L:length(tsp[[i]])) {
-      if (is.character(tsp[[i]][[ii]])) {  # either chr keys or numeric indices
-        curr <- extractValueFromObjKey(curr, tsp[[i]][[ii]])
-      } else {                             # numeric array indices
-        xtrc <- sapply(tsp[[i]][[ii]], function(int) {
+    for (key in tsp[[i]]) {
+      if (is.character(key)) {  # either chr keys or numeric indices
+        curr <- extractValueFromObjKey(curr, key)
+      } else {                  # numeric array indices
+        xtrc <- sapply(key, function(int) {
           extractValueFromArrIndex(curr, int)
         })
         # only quote string literals within json

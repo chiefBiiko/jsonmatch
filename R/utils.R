@@ -31,8 +31,8 @@ verifyPatternSyntax <- function(json, pattern) {
   # setup syntax check
   rex <- '^(\\.[[:alnum:]]+)|^(\\[\\d+(,\\d+)*(:\\d+)*\\])'  # master regex
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]           # pattern components
-  for (i in 1L:length(comps)) {                              # do em all
-    red <- comps[i]                                          # reduction base
+  for (comp in comps) {                                      # do em all
+    red <- comp                                              # reduction base
     repeat {                                                 # do predicate reduction
       if (!grepl(rex, red, perl=TRUE)) return(FALSE)    # check head
       red <- sub(rex, '', red, perl=TRUE)               # cut head
