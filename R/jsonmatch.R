@@ -1,10 +1,11 @@
 # jsonmatch
 
-# TODO: -work on matching multi-D arrays !!!!!!!!!!!
-#       -erase all \\s in input json and let em know
-#       -checkstop that pattern is valid - DONE
+# TODO: -erase all \\s in input json and pattern
+#       -use non-capturing regex groups where possible
 #       -allow wildcard matching for obj.props
-#       -allow matching by value?? -> dont like it
+#       -write a command line version of jsonmatch
+#       -work on matching multi-D arrays - DONE
+#       -checkstop that pattern is valid - DONE
 
 #' Simple matching on JSON
 #' 
@@ -15,7 +16,7 @@
 #' ...
 #' 
 #' @export
-jsonmatch <- function(json, pattern, by.value=FALSE) {
+jsonmatch <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
             verifyPatternSyntax(json, pattern))
   # split and transform arg pattern
