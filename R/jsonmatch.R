@@ -8,9 +8,11 @@
 
 #' Simple matching on JSON
 #' 
+#' Subset JSON without parsing it to its equivalent R representation.
+#' 
 #' @details Parameter \code{pattern} allows matching keys of a JSON 
 #' object \code{.key}, and keys/indices of a JSON array \code{[0,3,5] or [0:5]}.
-#' 
+#' ...
 #' 
 #' @export
 jsonmatch <- function(json, pattern, by.value=FALSE) {

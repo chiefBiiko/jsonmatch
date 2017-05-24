@@ -9,6 +9,7 @@ testthat::test_that('return matches pattern', {
   saka <- jsonlite::toJSON(list(a=FALSE, 
                                 b=c('zu', 'lu'), 
                                 c=list(x=4L, y=1L, z=9L)))
+  kafa <- jsonlite::toJSON(list(list(list(36)), list(44)))
   juju <- jsonlite::toJSON(c(4L:0L, 36L:44L, 1L:9L))
   
   # single item
@@ -26,12 +27,23 @@ testthat::test_that('return matches pattern', {
                                class='json'
                              ))
   
-  # js constants
+  # JSON constant
   testthat::expect_identical(jsonmatch(saka, '.a'),
                              structure('[false]', class='json'))
   
-  # multidimensional arrays still fail
+  # 2D array
   testthat::expect_identical(jsonmatch(waka, '.b[0]'),
                              structure('[77,44]', class='json'))
   
+  # 3D array
+  testthat::expect_identical(jsonmatch(kafa, '[0][0][0]'),
+                             structure('[36]', class='json'))
+  
+  # throws on incorrect horizontal array indexing
+  testthat::expect_error(jsonmatch(kafa, '[0][0][1]'))
+ 
+  # gracefully handles incorrect vertical array indexing at a path's base
+  testthat::expect_identical(jsonmatch(kafa, '[1][0][0]'),
+                             structure('[44]', class='json'))
+   
 })
