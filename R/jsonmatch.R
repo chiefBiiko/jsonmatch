@@ -19,21 +19,19 @@
 jsonmatch <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
             verifyPatternSyntax(json, pattern))
-  # strip whitespace 
-  json <- gsub('\\s+', '', json, perl=TRUE)
-  # split and transform arg pattern
+  # split and transform subset pattern
   spl <- Filter(function(p) p != '', strsplit(pattern, ',', fixed=TRUE)[[1]])
   tsp <- transformSubsetPattern(spl)
   # iterate and reduce to target value(s)
   i <- 1L
   accu <- vector('character', length(tsp))
   repeat {
-    curr <- json  # reduction base
+    curr <- gsub('\\s+', '', json, perl=TRUE)  # reduction base
     # reduce curr to target value
     for (key in tsp[[i]]) {
-      if (is.character(key)) {  # either chr keys or numeric indices
+      if (is.character(key)) {                 # chr object keys
         curr <- extractValueFromObjKey(curr, key)
-      } else {                  # numeric array indices
+      } else {                                 # numeric array indices
         xtrc <- sapply(key, function(int) {
           extractValueFromArrIndex(curr, int)
         })
