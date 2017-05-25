@@ -10,7 +10,7 @@ testthat::test_that('return matches pattern', {
                                 b=c('zu', 'lu'), 
                                 c=list(x=4L, y=1L, z=9L)))
   kafa <- jsonlite::toJSON(list(list(list(36)), list(44)))
-  juju <- jsonlite::toJSON(c(4L:0L, 36L:44L, 1L:9L))
+  maka <- jsonlite::toJSON(list(ab=4L, ac=1L, yo=36L, ak=9L))
   
   # single item
   testthat::expect_identical(jsonmatch(saka, '.b[0]'), 
@@ -45,5 +45,10 @@ testthat::test_that('return matches pattern', {
   # gracefully handles incorrect vertical array indexing at a path's base
   testthat::expect_identical(jsonmatch(kafa, '[1][0][0]'),
                              structure('[44]', class='json'))
+  
+  # wildcard matching
+  testthat::expect_identical(jsonmatch(maka, '.a*'),
+                             structure('{".ab":[4],".ac":[1],".ak":[9]}', 
+                                       class='json'))
    
 })

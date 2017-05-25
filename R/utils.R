@@ -52,7 +52,12 @@ verifyPatternSyntax <- function(json, pattern) {
 #' @internal
 transformSubsetPattern <- function(split.pattern) {
   stopifnot(is.character(split.pattern))
-  comps <- strsplit(split.pattern, '(?<=[\\]])|(?=[[:alpha:]])', perl=TRUE)
+  print(split.pattern)
+  # split to path components
+  comps <- strsplit(split.pattern, 
+                    '(?:\\b(?=\\[))|[^[:alnum:],:\\[\\]]', 
+                    perl=TRUE)
+  print(comps)
   nodots <- lapply(comps, function(comp) {
     comp <- gsub('.', '', comp, fixed=TRUE)
     comp[comp != '']
