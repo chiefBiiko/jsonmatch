@@ -21,15 +21,15 @@ jsonmatch <- function(json, pattern) {
             verifyPatternSyntax(json, pattern))
   # split and transform subset pattern
   spl <- Filter(function(p) p != '', strsplit(pattern, ',', fixed=TRUE)[[1]])
-  tsp <- transformSubsetPattern(spl)
-##print(tsp)
+  keys <- getKeysFromPattern(spl)
+##print(keys)
   # iterate and reduce to target value(s)
   i <- 1L
-  accu <- vector('character', length(tsp))
+  accu <- vector('character', length(keys))
   repeat {
     curr <- gsub('\\s+', '', json, perl=TRUE)  # reduction base
     # reduce curr to target value
-    for (key in tsp[[i]]) {
+    for (key in keys[[i]]) {
       if (is.character(key)) {                 # chr object keys
         curr <- extractValueFromObjKey(curr, key)
       } else {                                 # numeric array indices
@@ -43,7 +43,7 @@ jsonmatch <- function(json, pattern) {
     }
     accu[i] <- curr             # store target value
     i <- i + 1L                 # increment
-    if (i > length(tsp)) break  # trapdoor
+    if (i > length(keys)) break  # trapdoor
   }
   # package and return
   rtn <- if (length(accu) > 1L) {  # case multiple target values

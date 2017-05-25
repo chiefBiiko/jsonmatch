@@ -50,7 +50,7 @@ verifyPatternSyntax <- function(json, pattern) {
 #' @return 2d list providing symbols as required by \code{extractValueFrom*}.
 #' 
 #' @internal
-transformSubsetPattern <- function(split.pattern) {
+getKeysFromPattern <- function(split.pattern) {
   stopifnot(is.character(split.pattern))
 ##print(split.pattern)
   # split to path components
