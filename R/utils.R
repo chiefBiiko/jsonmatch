@@ -25,11 +25,15 @@ verifyPatternSyntax <- function(json, pattern) {
     strsplit(pattern, '', fixed=TRUE)[[1]][1] == '.'
   }
   # check 4 invalid characters
-  valid <- !grepl('[^\\.,:\\[\\]\\d[A-Za-z]]*', pattern, perl=TRUE)
+  valid <- !grepl('[^\\*\\.,\\:\\[\\]\\d[A-Za-z]]*', pattern, perl=TRUE)
   # early exit
   if (!struct || !valid) return(FALSE)
   # setup syntax check                                       # master regex
-  rex <- '^(?:\\.[[:alnum:]]+)|^(?:\\[\\d+(?:,\\d+)*(?:\\:\\d+)*\\])'
+  rex <- paste0('^(?:\\.[[:alnum:]]+\\*|', 
+                '\\.\\*[[:alnum:]]+|', 
+                '\\.[[:alnum:]]+\\*[[:alnum:]]+|', 
+                '\\.[[:alnum:]]+)|', 
+                '^(?:\\[\\d+(?:,\\d+)*(?:\\:\\d+)*\\])')
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]           # pattern components
   for (comp in comps) {                                      # do em all
     red <- comp                                              # reduction base
@@ -71,6 +75,11 @@ getPathsFromPattern <- function(json, pattern) {
 #' @param json JSON string.
 #' @param selector Object selector/path containing the wildcard character.
 #' @return Chr vector.
+#' 
+#' @details You can use multiple wildcards in one pattern and even within one 
+#' path but you can not use multiple wildcards within a single key value, f.x.
+#' ALLOWED: '.a*,.b*' or '.*z.d*,.b*' 
+#' NOT ALLOWED: '.a*c*' or '.*b*'
 #'
 handleWildCard <- function(json, selector) {
   # regex 2 match the wildcard part of the selector
