@@ -56,7 +56,7 @@ getPathsFromPattern <- function(json, pattern) {
   #
   print(selectors)
   print(grepl('\\*', selectors, perl=TRUE))
-  unlist(lapply(selectors, function(s) {
+  rtn <- unlist(lapply(selectors, function(s) {
     if (grepl('\\*', s, perl=TRUE)) {
       # GET ALL *matches in a vector !!!
       print(s)
@@ -65,15 +65,46 @@ getPathsFromPattern <- function(json, pattern) {
       s
     }
   }))
+  # serve
+  print(rtn)
+  return(rtn)
 }
 
 #'
 handleWildCard <- function(json, selector) {
-##delim <- '(?<=\\])(?=\\[)|(?<=[[:alnum:]\\*])(?=\\[)|(?<=\\])(?=\\.)'
-  wdcd.key <- '[[:alnum:]]+\\*|\\*[[:alnum:]]+'
-  # trim initial dot
-  trimd.dot <- sub('^\\.', '', selector, perl=TRUE)
-  return(trimd.dot)
+  # regex 2 match the wildcard part of the selector
+  rex.wdcd.key <- '\\.[[:alnum:]]+\\*|\\.\\*[[:alnum:]]+|\\.[[:alnum:]]+\\*[[:alnum:]]+'
+  # extract the wildcard part of the selector
+  wdcd.key <- regmatches(selector, regexpr(rex.wdcd.key, selector, perl=TRUE))
+  print(wdcd.key)
+  # get prefix of wdcd.key
+  pre <- sub(paste0(rex.wdcd.key, '(?<!^)'), '', selector, perl=TRUE)
+  print(pre)
+  # object context where to look for wildcard matches
+  obj.ctx <- gsub('^\\{|\\}$', '', 
+                  if (pre != '') jsonmatch(json, pre) else json, 
+                  perl=TRUE)
+  print(obj.ctx)
+  # make regex from wdcd.key expression
+  rex.mtch.keys <- paste0('(?:"', sub('\\*', '[[:alnum:]]+', 
+                                      sub('^\\.', '', wdcd.key, perl=TRUE), 
+                                      perl=TRUE), 
+                          '"\\:)(?![^\\{]*\\})')  # keys on top level only
+  # get all matching keys
+  mtch.keys <- paste0('.', 
+                      gsub('["\\:]', '', 
+                           regmatches(obj.ctx, 
+                                      gregexpr(rex.mtch.keys, 
+                                               obj.ctx, 
+                                               perl=TRUE))[[1]],
+                           perl=TRUE))
+  print(mtch.keys)
+  # glue things back together
+  glued <- sapply(mtch.keys, function(mk) sub(wdcd.key, mk, selector, fixed=TRUE),
+                  USE.NAMES=FALSE)
+  message('glued keys:')
+  print(glued)
+  return(glued)
   # ...
 }
 
@@ -89,9 +120,10 @@ getKeysFromPaths <- function(paths) {
   print(paths)
   # split paths to path components
   comps <- strsplit(paths, 
-                    '(?<=\\])(?=\\[)|(?<=[[:alnum:]])(?=\\[)|(?<=\\])(?=\\.)', 
+                    paste0('(?<=\\])(?=\\[)|(?<=[[:alnum:]])(?=\\[)|', 
+                           '(?<=\\])(?=\\.)|(?<=[[:alnum:]])(?=\\.)'), 
                     perl=TRUE)
-##print(comps)
+  print(comps)
   nodots <- lapply(comps, function(comp) {
     comp <- gsub('.', '', comp, fixed=TRUE)
     comp[comp != '']

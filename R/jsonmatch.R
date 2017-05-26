@@ -3,6 +3,7 @@
 # TODO: -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props
+#       -adjust verifyPatternSyntax 4 wildcards
 #       -write a command line version of jsonmatch
 #       -work on matching multi-D arrays - DONE
 #       -checkstop that pattern is valid - DONE
@@ -21,7 +22,7 @@ jsonmatch <- function(json, pattern) {
 ##          verifyPatternSyntax(json, pattern))
   # split pattern to paths
   paths <- getPathsFromPattern(json, pattern)
-  return(paths)
+##return(paths)
   # get keys from paths
   keys <- getKeysFromPaths(paths)
   # iterate and reduce to target value(s)
@@ -52,7 +53,7 @@ jsonmatch <- function(json, pattern) {
       paste0('[', paste0(packAtoms(accu), collapse=','), ']')
     } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # case object
       paste0('{', 
-             paste0(packAtoms(accu, gsub('^\\.', '', paths, perl=TRUE)), 
+             paste0(packAtoms(accu, sub('^\\.', '', paths, perl=TRUE)), 
                     collapse=','), 
              '}')
     }
