@@ -209,31 +209,31 @@ extractValueFromObjKey <- function(obj, key) {
 packAtoms <- function(accumulator, keys) {
   stopifnot(is.character(accumulator),
             missing(keys) || is.character(keys))
-  return(if (missing(keys)) {
+  return(if (missing(keys)) {  # case no keys passed
     sapply(accumulator, function(a) {
-      if (!grepl('^\\[|\\{.*\\]|\\}$', a, perl=TRUE)) {
+      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {
         if (grepl('^[[:alpha:]]', a, perl=TRUE) &&
-            !grepl('^null$|^false$', a, perl=TRUE)) {
+            !grepl('^null$|^false$', a, perl=TRUE)) {  # pack strings
           paste0('["', a, '"]') 
-        } else {
+        } else {                                       # pack anything else
           paste0('[', a, ']')
         }
-      } else {
+      } else {                                         # already packed
         a
       }
     }, USE.NAMES=FALSE) 
-  } else {
+  } else {                     # case keys passed
     i <- 0L
     sapply(accumulator, function(a) {
       i <<- i + 1L
-      if (!grepl('^\\[|\\{.*\\]|\\}$', a, perl=TRUE)) {
+      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {
         if (grepl('^[[:alpha:]]', a, perl=TRUE) &&
-            !grepl('^null$|^false$', a, perl=TRUE)) {
+            !grepl('^null$|^false$', a, perl=TRUE)) {  # pack strings
           paste0(paste0('"', keys[i], '"', ':'), '["', a, '"]')
-        } else {
+        } else {                                       # pack anything else
           paste0(paste0('"', keys[i], '"', ':'), '[', a, ']')
         }
-      } else {
+      } else {                                         # already packed
         paste0(paste0('"', keys[i], '"', ':'), a) 
       }
     }, USE.NAMES=FALSE)
