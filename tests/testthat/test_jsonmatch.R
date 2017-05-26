@@ -10,7 +10,7 @@ testthat::test_that('return matches pattern', {
                                 b=c('zu', 'lu'), 
                                 c=list(x=4L, y=1L, z=9L)))
   kafa <- jsonlite::toJSON(list(list(list(36)), list(44)))
-  maka <- jsonlite::toJSON(list(ab=4L, ac=1L, yo=36L, ak=9L))
+  maka <- jsonlite::toJSON(list(lo=list(ac=4L, ab=1L, gh=0L), yo=36L, ak=9L))
   
   # single item
   testthat::expect_identical(jsonmatch(saka, '.b[0]'), 
@@ -47,8 +47,8 @@ testthat::test_that('return matches pattern', {
                              structure('[44]', class='json'))
   
   # wildcard matching
-  testthat::expect_identical(jsonmatch(maka, '.a*'),
-                             structure('{".ab":[4],".ac":[1],".ak":[9]}', 
+  testthat::expect_identical(jsonmatch(maka, '.lo.a*,.ak'),
+                             structure('{".lo.ac":[4],".lo.ab":[1],".ak":[9]}', 
                                        class='json'))
    
 })

@@ -17,12 +17,13 @@
 #' 
 #' @export
 jsonmatch <- function(json, pattern) {
-  stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
-            verifyPatternSyntax(json, pattern))
-  # split and transform subset pattern
-  spl <- Filter(function(p) p != '', strsplit(pattern, ',', fixed=TRUE)[[1]])
-  keys <- getKeysFromPattern(spl)
-##print(keys)
+##stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
+##          verifyPatternSyntax(json, pattern))
+  # split pattern to paths
+  paths <- getPathsFromPattern(json, pattern)
+  return(paths)
+  # get keys from paths
+  keys <- getKeysFromPaths(paths)
   # iterate and reduce to target value(s)
   i <- 1L
   accu <- vector('character', length(keys))
@@ -51,7 +52,7 @@ jsonmatch <- function(json, pattern) {
       paste0('[', paste0(packAtoms(accu), collapse=','), ']')
     } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # case object
       paste0('{', 
-             paste0(packAtoms(accu, gsub('^\\.', '', spl, perl=TRUE)), 
+             paste0(packAtoms(accu, gsub('^\\.', '', paths, perl=TRUE)), 
                     collapse=','), 
              '}')
     }

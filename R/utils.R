@@ -43,18 +43,52 @@ verifyPatternSyntax <- function(json, pattern) {
   return(TRUE)
 }
 
-#' Takes a split vector of dirty object keys and array indices and returns
-#'  a 2d list providing symbols as required by \code{extractValueFrom*}.
+#' Splits pattern to paths while handling the wildcard
 #' 
-#' @param split.pattern Character vector of jsonmatch-type key references.
+#' @param pattern Subset pattern.
+#' @return Chr vector.
+#' 
+#' @internal
+getPathsFromPattern <- function(json, pattern) {
+  # selectors split
+  selectors <- Filter(function(p) p != '', 
+                      strsplit(pattern, ',', fixed=TRUE)[[1]])
+  #
+  print(selectors)
+  print(grepl('\\*', selectors, perl=TRUE))
+  unlist(lapply(selectors, function(s) {
+    if (grepl('\\*', s, perl=TRUE)) {
+      # GET ALL *matches in a vector !!!
+      print(s)
+      handleWildCard(json, s)
+    } else {
+      s
+    }
+  }))
+}
+
+#'
+handleWildCard <- function(json, selector) {
+##delim <- '(?<=\\])(?=\\[)|(?<=[[:alnum:]\\*])(?=\\[)|(?<=\\])(?=\\.)'
+  wdcd.key <- '[[:alnum:]]+\\*|\\*[[:alnum:]]+'
+  # trim initial dot
+  trimd.dot <- sub('^\\.', '', selector, perl=TRUE)
+  return(trimd.dot)
+  # ...
+}
+
+#' Takes a split vector of dirty object keys and array indices and returns
+#'  a 2d list providing references as required by \code{extractValueFrom*}.
+#' 
+#' @param paths Character vector of jsonmatch-type key references.
 #' @return 2d list providing symbols as required by \code{extractValueFrom*}.
 #' 
 #' @internal
-getKeysFromPattern <- function(split.pattern) {
-  stopifnot(is.character(split.pattern))
-##print(split.pattern)
-  # split to path components
-  comps <- strsplit(split.pattern, 
+getKeysFromPaths <- function(paths) {
+  stopifnot(is.character(paths))
+  print(paths)
+  # split paths to path components
+  comps <- strsplit(paths, 
                     '(?<=\\])(?=\\[)|(?<=[[:alnum:]])(?=\\[)|(?<=\\])(?=\\.)', 
                     perl=TRUE)
 ##print(comps)
