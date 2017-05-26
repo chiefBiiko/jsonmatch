@@ -1,7 +1,0 @@
-  rex <- paste0('^(?:',                                      # prop references
-                '\\.[[:alnum:]]+\\*|', 
-                '\\.\\*[[:alnum:]]+|', 
-                '\\.[[:alnum:]]+\\*[[:alnum:]]+|', 
-                '\\.[[:alnum:]]+', 
-                '){1,}|', 
-                '^(?:\\[\\d+(?:,\\d+)*(?:\\:\\d+)*\\])')     # index references

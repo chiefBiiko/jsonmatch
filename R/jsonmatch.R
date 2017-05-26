@@ -4,7 +4,7 @@
 #       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props - DONE
 #       -adjust verifyPatternSyntax 4 wildcards - DONE
-#       -allow multiple wildcards in one property reference
+#       -allow multiple wildcards in one property reference - DONE
 #       -setup jsonbox to handle boxing of atomic data
 #       -allow file references
 #       -write a command line version of jsonmatch
@@ -25,7 +25,7 @@ jsonmatch <- function(json, pattern) {
   # mutate json
   json <- gsub('\\s+', '', json, perl=TRUE)
   # do a syntax check
-##if (!verifyPatternSyntax(json, pattern)) stop('invalid pattern syntax')
+  if (!verifyPatternSyntax(json, pattern)) stop('invalid pattern syntax')
   # split pattern to paths
   paths <- getPathsFromPattern(json, pattern)
   # get keys from paths

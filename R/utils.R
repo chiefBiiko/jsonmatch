@@ -28,16 +28,13 @@ verifyPatternSyntax <- function(json, pattern) {
   valid <- !grepl('[^\\*\\.,\\:\\[\\]\\d[A-Za-z]]*', pattern, perl=TRUE)
   # early exit
   if (!struct || !valid) return(FALSE)
-  # setup syntax check                                       # master regex
-  rex <- paste0('^(?:\\.[[:alnum:]]+\\*|', 
-                '\\.\\*[[:alnum:]]+|', 
-                '\\.[[:alnum:]]+\\*[[:alnum:]]+|', 
-                '\\.[[:alnum:]]+)|', 
+  # setup syntax check                                    # master regex
+  rex <- paste0('^(?:\\.\\*?[[:alnum:]]?\\*?[[:alnum:]]?)+|', 
                 '^(?:\\[\\d+(?:,\\d+)*(?:\\:\\d+)*\\])')
-  comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]           # pattern components
-  for (comp in comps) {                                      # do em all
-    red <- comp                                              # reduction base
-    repeat {                                                 # do predicate reduction
+  comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
+  for (comp in comps) {                                   # do em all
+    red <- comp                                           # reduction base
+    repeat {                                              # do predicate reduction
       if (!grepl(rex, red, perl=TRUE)) return(FALSE)    # check head
       red <- sub(rex, '', red, perl=TRUE)               # cut head
       if (nchar(red) == 0L) break                       # trapdoor
@@ -76,28 +73,28 @@ getPathsFromPattern <- function(json, pattern) {
 #' @param selector Object selector/path containing the wildcard character.
 #' @return Chr vector.
 #' 
-#' @details You can use multiple wildcards in one pattern and even within one 
-#' path but you can not use multiple wildcards within a single key value, f.x.
-#' ALLOWED: '.a*,.b*' or '.*z.d*,.b*' 
-#' NOT ALLOWED: '.a*c*' or '.*b*'
-#'
+#' @internal
 handleWildCard <- function(json, selector) {
   # regex 2 match the wildcard part of the selector
-  rex.wdcd.key <- paste0('\\.[[:alnum:]]+\\*|\\.\\*[[:alnum:]]+|', 
-                         '\\.[[:alnum:]]+\\*[[:alnum:]]+')
+  rex.wdcd.key <- paste0('\\.[[:alnum:]]+\\*[[:alnum:]]+|',  # <- this case 1st
+                         '\\.[[:alnum:]]+\\*|(?:\\.\\*[[:alnum:]]+\\*?)+')
   # extract the wildcard part of the selector
   wdcd.key <- regmatches(selector, regexpr(rex.wdcd.key, selector, perl=TRUE))
   # get prefix of wdcd.key
-  pre <- sub(paste0(rex.wdcd.key, '(?<!^)'), '', selector, perl=TRUE)
+  pre <- if ((pos <- regexpr(wdcd.key, selector, fixed=TRUE)[1]) > 1L) {
+    substr(selector, 1, pos - 1L)
+  } else {
+    ''
+  }
   # object context where to look for wildcard matches
-  obj.ctx <- gsub('^\\{|\\}$', '', 
-                  if (pre != '') jsonmatch(json, pre) else json, 
+  obj.ctx <- gsub('(?:^\\{|^\\[)|(?:\\}$|\\]$)', '', 
+                  if (!pre %in% c('', '.')) jsonmatch(json, pre) else json, 
                   perl=TRUE)
   # make regex from wdcd.key expression
   rex.mtch.keys <- paste0('(?:"', sub('\\*', '[[:alnum:]]+', 
                                       sub('^\\.', '', wdcd.key, perl=TRUE), 
                                       perl=TRUE), 
-                          '"\\:)(?![^\\{]*\\})')  # keys on top level only
+                          '"\\:)(?![^\\{]*\\})(?![^\\[]*\\])')  # keys on top level only
   # get all matching keys
   mtch.keys <- paste0('.', 
                       gsub('["\\:]', '', 

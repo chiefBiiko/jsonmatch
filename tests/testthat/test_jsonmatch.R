@@ -65,7 +65,12 @@ testthat::test_that('return matches pattern', {
                              structure(paste0('{"lo.ac":[1],"lo.ab":[2],', 
                                               '"lu.ac":[3],"lu.ab":[4]}'), class='json'))
   
-  # multiple wildcards in one obj key errors
-  testthat::expect_error(jsonmatch(kaka, '.*b*'))
+  # wildcard in the middle
+  testthat::expect_identical(jsonmatch(kaka, '.d*e'),
+                             structure('[2]', class='json'))
+  
+  # multiple wildcards in one obj key
+  testthat::expect_identical(jsonmatch(kaka, '.*b*'),
+                             structure('{"abc":[1],"dbe":[2]}', class='json'))
   
 })
