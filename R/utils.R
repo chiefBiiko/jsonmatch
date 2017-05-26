@@ -45,6 +45,7 @@ verifyPatternSyntax <- function(json, pattern) {
 
 #' Splits pattern to paths while handling the wildcard
 #' 
+#' @param json JSON string.
 #' @param pattern Subset pattern.
 #' @return Chr vector.
 #' 
@@ -53,38 +54,36 @@ getPathsFromPattern <- function(json, pattern) {
   # selectors split
   selectors <- Filter(function(p) p != '', 
                       strsplit(pattern, ',', fixed=TRUE)[[1]])
-  #
-  print(selectors)
-  print(grepl('\\*', selectors, perl=TRUE))
+  # make a flat vector
   rtn <- unlist(lapply(selectors, function(s) {
-    if (grepl('\\*', s, perl=TRUE)) {
-      # GET ALL *matches in a vector !!!
-      print(s)
+    if (grepl('\\*', s, perl=TRUE)) {  # GET ALL *matches in a vector
       handleWildCard(json, s)
     } else {
       s
     }
   }))
   # serve
-  print(rtn)
   return(rtn)
 }
 
+#' Returns a chr vector of wildcard matched object keys
+#'
+#' @param json JSON string.
+#' @param selector Object selector/path containing the wildcard character.
+#' @return Chr vector.
 #'
 handleWildCard <- function(json, selector) {
   # regex 2 match the wildcard part of the selector
-  rex.wdcd.key <- '\\.[[:alnum:]]+\\*|\\.\\*[[:alnum:]]+|\\.[[:alnum:]]+\\*[[:alnum:]]+'
+  rex.wdcd.key <- paste0('\\.[[:alnum:]]+\\*|\\.\\*[[:alnum:]]+|', 
+                         '\\.[[:alnum:]]+\\*[[:alnum:]]+')
   # extract the wildcard part of the selector
   wdcd.key <- regmatches(selector, regexpr(rex.wdcd.key, selector, perl=TRUE))
-  print(wdcd.key)
   # get prefix of wdcd.key
   pre <- sub(paste0(rex.wdcd.key, '(?<!^)'), '', selector, perl=TRUE)
-  print(pre)
   # object context where to look for wildcard matches
   obj.ctx <- gsub('^\\{|\\}$', '', 
                   if (pre != '') jsonmatch(json, pre) else json, 
                   perl=TRUE)
-  print(obj.ctx)
   # make regex from wdcd.key expression
   rex.mtch.keys <- paste0('(?:"', sub('\\*', '[[:alnum:]]+', 
                                       sub('^\\.', '', wdcd.key, perl=TRUE), 
@@ -98,14 +97,19 @@ handleWildCard <- function(json, selector) {
                                                obj.ctx, 
                                                perl=TRUE))[[1]],
                            perl=TRUE))
-  print(mtch.keys)
   # glue things back together
   glued <- sapply(mtch.keys, function(mk) sub(wdcd.key, mk, selector, fixed=TRUE),
                   USE.NAMES=FALSE)
-  message('glued keys:')
-  print(glued)
-  return(glued)
-  # ...
+  # check if any wildcards remained - conditionally repeat
+  clued <- sapply(glued, function(gk) {
+    if (grepl('\\*', gk, perl=TRUE)) {
+      handleWildCard(json, gk)
+    } else {
+      gk
+    }
+  }, USE.NAMES=FALSE)
+  # serve
+  return(clued)
 }
 
 #' Takes a split vector of dirty object keys and array indices and returns
@@ -117,17 +121,17 @@ handleWildCard <- function(json, selector) {
 #' @internal
 getKeysFromPaths <- function(paths) {
   stopifnot(is.character(paths))
-  print(paths)
   # split paths to path components
   comps <- strsplit(paths, 
                     paste0('(?<=\\])(?=\\[)|(?<=[[:alnum:]])(?=\\[)|', 
                            '(?<=\\])(?=\\.)|(?<=[[:alnum:]])(?=\\.)'), 
                     perl=TRUE)
-  print(comps)
+  # strip dots and \\s
   nodots <- lapply(comps, function(comp) {
     comp <- gsub('.', '', comp, fixed=TRUE)
     comp[comp != '']
   })
+  # make a 2D list of chr obj keys and numeric indices
   subseq <- lapply(nodots, function(nd) {
     lapply(nd, function(d) {
       if (grepl('\\[[[:digit:],:]+\\]', d, perl=TRUE)) {
@@ -137,6 +141,7 @@ getKeysFromPaths <- function(paths) {
       }
     })
   })
+  # serve 4 extractValueFrom*
   return(subseq)
 }
 

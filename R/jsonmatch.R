@@ -2,7 +2,7 @@
 
 # TODO: -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
-#       -allow wildcard matching for obj.props
+#       -allow wildcard matching for obj.props - DONE
 #       -adjust verifyPatternSyntax 4 wildcards
 #       -write a command line version of jsonmatch
 #       -work on matching multi-D arrays - DONE
@@ -18,18 +18,20 @@
 #' 
 #' @export
 jsonmatch <- function(json, pattern) {
-##stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
-##          verifyPatternSyntax(json, pattern))
+  stopifnot(isTruthyChr(json), isTruthyChr(pattern))
+  # mutate json
+  json <- gsub('\\s+', '', json, perl=TRUE)
+  # do a syntax check
+##if (!verifyPatternSyntax(json, pattern)) stop('invalid pattern syntax')
   # split pattern to paths
   paths <- getPathsFromPattern(json, pattern)
-##return(paths)
   # get keys from paths
   keys <- getKeysFromPaths(paths)
   # iterate and reduce to target value(s)
   i <- 1L
   accu <- vector('character', length(keys))
   repeat {
-    curr <- gsub('\\s+', '', json, perl=TRUE)  # reduction base
+    curr <- json                               # reduction base
     # reduce curr to target value
     for (key in keys[[i]]) {
       if (is.character(key)) {                 # chr object keys
