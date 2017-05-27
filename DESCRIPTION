@@ -3,8 +3,8 @@ Title: Match JSON
 Version: 0.0.0.9000
 Authors@R: person("Noah", "Schwarz", email = "noah.anabiik.schwarz@gmail.com", role = c("aut", "cre"))
 Description: Subset JSON via simple key matching.
-Imports: jsonbox
-Remotes: github::chiefBiiko/jsonbox
+Imports: boxjson
+Remotes: github::chiefBiiko/boxjson
 Depends: R (>= 3.3.2)
 License: MIT + file LICENSE
 Encoding: UTF-8
