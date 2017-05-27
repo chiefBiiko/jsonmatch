@@ -48,8 +48,8 @@ jsonmatch <- function(json, pattern) {
                      paste0(xtrc, collapse='","'), perl=TRUE)
       }
     }
-    accu[i] <- curr             # store target value
-    i <- i + 1L                 # increment
+    accu[i] <- curr              # store target value
+    i <- i + 1L                  # increment
     if (i > length(keys)) break  # trapdoor
   }
   # package and return
