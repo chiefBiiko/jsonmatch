@@ -33,4 +33,8 @@ testthat::test_that('return matches wildcard pattern', {
   testthat::expect_identical(jsonmatch(kaka, '.*b*'),
                              structure('{"abc":[1],"dbe":[2]}', class='json'))
   
+  # wildcard solely
+  testthat::expect_identical(jsonmatch(kaka, '.*'),
+                             structure('{"abc":[1],"dbe":[2]}', class='json'))
+  
 })

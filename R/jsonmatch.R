@@ -1,12 +1,13 @@
 # jsonmatch
 
-# TODO: -erase all \\s in input json - DONE
+# TODO: -fix multiple array indexing - DONE
+#       -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props - DONE
 #       -adjust verifyPatternSyntax 4 wildcards - DONE
 #       -allow multiple wildcards in one property reference - DONE
-#       -setup jsonbox to handle boxing of atomic data
-#       -allow file references
+#       -setup jsonbox to handle boxing of atomic data and auto_unbox - DONE
+#       -allow file references - DONE
 #       -write a command line version of jsonmatch
 #       -work on matching multi-D arrays - DONE
 #       -checkstop that pattern is valid - DONE
@@ -20,10 +21,17 @@
 #' ...
 #' 
 #' @export
-jsonmatch <- function(json, pattern) {
+jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
-  # mutate json
-  json <- gsub('\\s+', '', json, perl=TRUE)
+  # mutate input
+  if (file.exists(json)) {  # allow file references
+    json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '', 
+                 paste0(readLines(json, warn=FALSE), collapse=''), 
+                 perl=TRUE)
+  } else if (grepl('\\s(?=(?:(?:[^"]*"){2})*[^"]*$)', json, perl=TRUE)) {
+    json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '', json, perl=TRUE)
+  }
+  if (boxjson::hasUnboxedAtoms(json)) json <- boxjson::boxAtoms(json)  # boxing
   # do a syntax check
   if (!verifyPatternSyntax(json, pattern)) stop('invalid pattern syntax')
   # split pattern to paths
@@ -45,25 +53,33 @@ jsonmatch <- function(json, pattern) {
         })
         # correctly quote string literals within json
         curr <- gsub('([^[:alpha:]])","([^[:alpha:]])', '\\1,\\2', 
-                     paste0(xtrc, collapse='","'), perl=TRUE)
+                     paste0(xtrc, collapse='","'),
+                     perl=TRUE)
       }
     }
     accu[i] <- curr              # store target value
     i <- i + 1L                  # increment
     if (i > length(keys)) break  # trapdoor
   }
-  # package and return
-  rtn <- if (length(accu) > 1L) {  # case multiple target values
-    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # case array
+  # package
+  rtn <- if (length(accu) > 1L) {  # case multiple strings in accu
+    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # base array
       paste0('[', paste0(packAtoms(accu), collapse=','), ']')
-    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # case object
+    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # base object
       paste0('{', 
              paste0(packAtoms(accu, sub('^\\.', '', paths, perl=TRUE)), 
                     collapse=','), 
              '}')
     }
-  } else {                         # case single target value
+  } else if (grepl(paste0(',(?![^\\[\\]]*+\\])(?![^\\{\\}]*+\\})', 
+                          '(?=(?:(?:[^"]*"){2})*[^"]*$)'), 
+                   accu, 
+                   perl=TRUE)) {   # case 1 string in accu but multi atoms
+    paste0('[', accu, ']')
+  } else {                         # case 1 string in accu and single atom
     packAtoms(accu)
   }
+  # boxing
+  if (auto_unbox) rtn <- boxjson::unboxAtoms(rtn)
   return(structure(rtn, class='json'))
 }

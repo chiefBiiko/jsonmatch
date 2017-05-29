@@ -77,7 +77,9 @@ getPathsFromPattern <- function(json, pattern) {
 handleWildCard <- function(json, selector) {
   # regex 2 match the wildcard part of the selector
   rex.wdcd.key <- paste0('\\.[[:alnum:]]+\\*[[:alnum:]]+|',  # <- this case 1st
-                         '\\.[[:alnum:]]+\\*|(?:\\.\\*[[:alnum:]]+\\*?)+')
+                         '\\.[[:alnum:]]+\\*|',
+                         '(?:\\.\\*[[:alnum:]]+\\*?)+|',
+                         '^\\.\\*$')
   # extract the wildcard part of the selector
   wdcd.key <- regmatches(selector, regexpr(rex.wdcd.key, selector, perl=TRUE))
   # get prefix of wdcd.key

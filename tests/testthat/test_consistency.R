@@ -10,6 +10,7 @@ testthat::test_that('return matches explicit pattern', {
                                 c=list(x=4L, y=1L, z=9L)))
   waka <- jsonlite::toJSON(list(a=c(1,2),b=list(c(77,44), 'doo')))
   kafa <- jsonlite::toJSON(list(list(list(36)), list(44)))
+  kaka <- jsonlite::toJSON(list(abc=1L, dbe=2L))
   
   # single item
   testthat::expect_identical(jsonmatch(saka, '.b[0]'), 
@@ -30,9 +31,13 @@ testthat::test_that('return matches explicit pattern', {
   testthat::expect_identical(jsonmatch(saka, '.a'),
                              structure('[false]', class='json'))
   
-  # 2D array
+  # 2D array pt 1
   testthat::expect_identical(jsonmatch(waka, '.b[0]'),
                              structure('[77,44]', class='json'))
+  
+  # 2D array pt 2
+  testthat::expect_identical(jsonmatch(waka, '.b[0:1]'),
+                             structure('[[77,44],["doo"]]', class='json'))
   
   # 3D array
   testthat::expect_identical(jsonmatch(kafa, '[0][0][0]'),
@@ -45,5 +50,9 @@ testthat::test_that('return matches explicit pattern', {
   # gracefully handles incorrect vertical array indexing at a path's base
   testthat::expect_identical(jsonmatch(kafa, '[1][0][0]'),  # correct: '[1][0]'
                              structure('[44]', class='json'))
+  
+  # unboxing
+  testthat::expect_identical(jsonmatch(kaka, '.*', auto_unbox=TRUE),
+                             structure('{"abc":1,"dbe":2}', class='json'))
   
 })
