@@ -1,6 +1,8 @@
 # jsonmatch
 
-# TODO: -fix matching arrays - NOT DONE
+# TODO: -write a helper that splits a string on an unclosed character !!!
+#       -fix boxjson not boxing unclosed atoms
+#       -fix matching arrays - NOT DONE
 #       -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props - DONE
@@ -39,31 +41,23 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   paths <- getPathsFromPattern(json, pattern)
   # get keys from paths
   keys <- getKeysFromPaths(paths)
-  # iterate and reduce to target value(s)
-  i <- 1L
+  # extraduce target value(s)
   accu <- vector('character', length(keys))
-  repeat {
+  for (i in seq(length(keys))) {
     curr <- json                               # reduction base
     # reduce curr to target value
     for (key in keys[[i]]) {
       if (is.character(key)) {                 # chr object keys
         curr <- extractValueFromObjKey(curr, key)
       } else {                                 # numeric array indices
-        xtrc <- sapply(key, function(int) {
-          extractValueFromArrIndex(curr, int)
-        })
-        # correctly quote string literals within json
-        curr <- gsub('([^[:alpha:]])","([^[:alpha:]])', '\\1,\\2', 
-                     paste0(xtrc, collapse='","'),
-                     perl=TRUE)
+        curr <- extractValueFromArrIndex(curr, key)
       }
     }
-    accu[i] <- curr              # store target value
-    i <- i + 1L                  # increment
-    if (i > length(keys)) break  # trapdoor
+    accu[i] <- curr                            # store target value
   }
   # package
-  rtn <- if (length(accu) > 1L) {  # case multiple strings in accu
+  rtn <- 
+  if (length(accu) > 1L) {         # case multiple strings in accu
     if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # base array
       paste0('[', paste0(packAtoms(accu), collapse=','), ']')
     } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # base object
@@ -72,10 +66,7 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
                     collapse=','), 
              '}')
     }
-  } else if (grepl(paste0(',(?![^\\[\\]]*+\\])(?![^\\{\\}]*+\\})', 
-                          '(?=(?:(?:[^"]*"){2})*[^"]*$)'), 
-                   accu, 
-                   perl=TRUE)) {   # case 1 string in accu but multi atoms
+  } else if (hasUnclosedChar(accu, ',')) {  # case 1 string in accu but multi atoms
     paste0('[', accu, ']')
   } else {                         # case 1 string in accu and single atom
     packAtoms(accu)

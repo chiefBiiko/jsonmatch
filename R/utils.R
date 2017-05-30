@@ -9,6 +9,34 @@ isTruthyChr <- function(char) {
   }
 }
 
+#' Does a string contain a character neither enclosed in brackets nor 
+#' double quotes?
+#'
+#' @param string Character vector of length 1L.
+#' @param character Single character to search for.
+#' @return Logical.
+#'
+#' @internal
+hasUnclosedChar <- function(string, character) {
+  stopifnot(is.character(string),
+            is.character(character),
+            nchar(character) == 1L)
+  # split to single characters
+  chars <- strsplit(string, '')[[1]]
+  # setup
+  opbr <- 0L
+  opqt <- 2L
+  # peep through
+  for (char in chars) {
+    if (char %in% c('[', '{')) opbr <- opbr + 1L
+    if (char %in% c(']', '}')) opbr <- opbr - 1L
+    if (char == '"') opqt <- opqt + 1L
+    if (char == character &&
+        (opbr == 0L && opqt %% 2L == 0L)) return(TRUE)
+  }
+  return(FALSE)
+}
+
 #' Performs a syntax check on pattern
 #' 
 #' @param json JSON string.
@@ -219,13 +247,22 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
   stopifnot(isTruthyChr(arr), is.numeric(index), index %% 1L == 0L)
   # split arr contents on comma not enclosed in [] or {}
   # \\d and [:alpha:] on hold: '(?![^\\d]*+\\d)(?![^[A-Za-z]]*+[A-Za-z])'
+  #
+  # TODO: write a helper that splits a string on an unclosed character !!!
+  #
   cospl <- strsplit(gsub('^\\[|\\]$', '', arr, perl=TRUE), 
                     ',(?![^\\[\\]]*+\\])(?![^\\{\\}]*+\\})',
                     perl=TRUE)[[1]]
-  # strip qoutes at head and tail
-  dqt <- gsub('^"|"$', '', cospl[index + 1L], perl=TRUE)
+  # get atoms out of array
+  arr.sub <- cospl[index + 1]
+  # error out
+  if (anyNA(arr.sub)) stop('index out of bounds')
+  # correctly quote string literals within subset
+  rtn <- gsub('([^[:alpha:]])","([^[:alpha:]])', '\\1,\\2', 
+              paste0(arr.sub, collapse='","'),
+              perl=TRUE)
   # serve
-  if (is.na(dqt)) stop('index out of bounds') else return(dqt)
+  return(rtn)
 }
 
 #' Extracts the item at given key of an JSON object
