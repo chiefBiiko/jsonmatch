@@ -27,14 +27,7 @@
 jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
   # mutate input
-  if (file.exists(json)) {  # allow file references
-    json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '', 
-                 paste0(readLines(json, warn=FALSE), collapse=''), 
-                 perl=TRUE)
-  } else if (grepl('\\s(?=(?:(?:[^"]*"){2})*[^"]*$)', json, perl=TRUE)) {
-    json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '', json, perl=TRUE)
-  }
-  if (boxjson::hasUnboxedAtoms(json)) json <- boxjson::boxAtoms(json)  # boxing
+  json <- mutateInputJSON(json)
   # do a syntax check
   if (!verifyPatternSyntax(json, pattern)) stop('invalid pattern syntax')
   # split pattern to paths
