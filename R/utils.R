@@ -52,10 +52,55 @@ hasUnclosedChar <- function(string, character) {
     if (char %in% c('[', '{')) opbr <- opbr + 1L
     if (char %in% c(']', '}')) opbr <- opbr - 1L
     if (char == '"') opqt <- opqt + 1L
-    if (char == character &&
-        (opbr == 0L && opqt %% 2L == 0L)) return(TRUE)
+    if (char == character && (opbr == 0L && opqt %% 2L == 0L)) return(TRUE)
   }
   return(FALSE)
+}
+
+#' Splits a string on given character neither enclosed in brackets nor 
+#' double quotes
+#'
+#' @param string Character vector of length 1L.
+#' @param character Single character to split on.
+#' @return Chr vector.
+#'
+#' @internal
+splitOnUnclosedChar <- function(string, character, keep=FALSE) {
+  stopifnot(is.character(string),
+            is.character(character),
+            nchar(character) == 1L,
+            is.logical(keep))
+  # split to single characters
+  chars <- strsplit(string, '')[[1]]
+  # setup
+  opbr <- 0L
+  opqt <- 2L
+  last.cut <- 0L
+  accu <- vector('character')
+  # peep through
+  for (i in seq(length(chars))) {
+    if (chars[i] %in% c('[', '{')) opbr <- opbr + 1L
+    if (chars[i] %in% c(']', '}')) opbr <- opbr - 1L
+    if (chars[i] == '"') opqt <- opqt + 1L
+    if (chars[i] == character && (opbr == 0L && opqt %% 2L == 0L)) {
+      if (!keep) {
+        accu <- append(accu, substr(string, last.cut + 1L, i - 1L))
+      } else {  # keep split character
+        # get pre
+        accu <- append(accu, substr(string, last.cut + 1L, i - 1L))
+        last.cut <- i - 1L
+        # get split character
+        accu <- append(accu, substr(string, last.cut + 1L, last.cut + 1L))
+      }
+      last.cut <- i
+    }
+  }
+  # consume remainder
+  if (last.cut < nchar(string))  {
+    accu <- append(accu, substr(string, last.cut + 1L, nchar(string)))
+  }
+  # serve
+  return(accu)
 }
 
 #' Performs a syntax check on pattern
@@ -138,13 +183,8 @@ handleTrailingColon <- function(json, selector) {
   arr.atoms <- gsub('^\\[|\\]$', '', 
                     if (pre != '') jsonmatch(json, pre) else json, 
                     perl=TRUE)
-  # regex 2 match commas neither enclosed in brackets nor quotes
-  rex.arr.len <- paste0(',(?![^\\[\\]]*+\\])(?![^\\{\\}]*+\\})', 
-                        '(?=(?:(?:[^"]*"){2})*[^"]*$)')
   # get the array length - with base zero
-  arr.len <- lengths(regmatches(arr.atoms, gregexpr(rex.arr.len, 
-                                               arr.atoms, 
-                                               perl=TRUE)))
+  arr.len <- length(splitOnUnclosedChar(arr.atoms, ',')) - 1L
   # construct a complete array indexer
   xolon.key <- paste0(substr(colon.key, 1, nchar(colon.key) - 1L),
                       as.character(arr.len), 
@@ -160,7 +200,7 @@ handleTrailingColon <- function(json, selector) {
       gk
     }
   }, USE.NAMES=FALSE)
-  # 
+  # serve
   clued
 }
 
@@ -266,14 +306,8 @@ getKeysFromPaths <- function(paths) {
 #' @internal
 extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
   stopifnot(isTruthyChr(arr), is.numeric(index), index %% 1L == 0L)
-  # split arr contents on comma not enclosed in [] or {}
-  # \\d and [:alpha:] on hold: '(?![^\\d]*+\\d)(?![^[A-Za-z]]*+[A-Za-z])'
-  #
-  # TODO: write a helper that splits a string on an unclosed character !!!
-  #
-  cospl <- strsplit(gsub('^\\[|\\]$', '', arr, perl=TRUE), 
-                    ',(?![^\\[\\]]*+\\])(?![^\\{\\}]*+\\})',
-                    perl=TRUE)[[1]]
+  # split arr contents on comma not enclosed in [], {} or ""
+  cospl <- splitOnUnclosedChar(gsub('^\\[|\\]$', '', arr, perl=TRUE), ',')
   # get atoms out of array
   arr.sub <- cospl[index + 1]
   # error out

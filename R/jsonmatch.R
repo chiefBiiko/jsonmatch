@@ -1,8 +1,8 @@
 # jsonmatch
 
-# TODO: -write a helper that splits a string on an unclosed character !!!
-#       -fix boxjson not boxing unclosed atoms
-#       -fix matching arrays - NOT DONE
+# TODO: -fix boxjson not boxing unclosed atoms - PENDING
+#       -rearrange packaging - PENDING
+#       -fix matching arrays - DONE
 #       -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props - DONE
@@ -10,10 +10,10 @@
 #       -allow multiple wildcards in one property reference - DONE
 #       -setup jsonbox to handle boxing of atomic data and auto_unbox - DONE
 #       -allow file references - DONE
-#       -write a command line version of jsonmatch
 #       -work on matching multi-D arrays - DONE
 #       -checkstop that pattern is valid - DONE
 #       -SUGAR: allow open ended array indexing with a trailing colon [0:]
+#       -write a cli 4 jsonmatch
 
 #' Simple matching on JSON
 #' 
