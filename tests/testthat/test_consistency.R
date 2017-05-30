@@ -11,7 +11,7 @@ testthat::test_that('return matches explicit pattern', {
   waka <- jsonlite::toJSON(list(a=c(1,2),b=list(c(77,44), 'doo')))
   kafa <- jsonlite::toJSON(list(list(list(36)), list(44)))
   kaka <- jsonlite::toJSON(list(abc=1L, dbe=2L))
-  lala <- jsonlite::toJSON(list('A', 'B', 'C', 'D', 'E', 'F'))
+  lala <- jsonlite::toJSON(list(acab=c('A', 'B', 'C', 'D', 'E', 'F')))
   
   # single item
   testthat::expect_identical(jsonmatch(saka, '.b[0]'), 
@@ -41,7 +41,7 @@ testthat::test_that('return matches explicit pattern', {
                              structure('[44]', class='json'))
   
   # unboxing
-  testthat::expect_identical(jsonmatch(kaka, '.*', auto_unbox=TRUE),
+  testthat::expect_identical(jsonmatch(kaka, '.abc,.dbe', auto_unbox=TRUE),
                              structure('{"abc":1,"dbe":2}', class='json'))
   
   # 2D array pt 1
@@ -57,7 +57,7 @@ testthat::test_that('return matches explicit pattern', {
                              structure('[36]', class='json'))
   
   # array edges
-  testthat::expect_error(jsonmatch(lala, '[1:]'))
+  testthat::expect_error(jsonmatch(lala, '.acab[1:]'))
   # should be: structure('[["B"],["C"],["D"],["E"],["F"]]', class='json')
   
 })

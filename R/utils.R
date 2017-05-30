@@ -29,7 +29,7 @@ verifyPatternSyntax <- function(json, pattern) {
   # early exit
   if (!struct || !valid) return(FALSE)
   # setup syntax check                                    # master regex
-  rex <- paste0('^(?:\\.\\*?[[:alnum:]]?\\*?[[:alnum:]]?)+|', 
+  rex <- paste0('^(?:\\.\\*?[[:alnum:]]*\\*?[[:alnum:]]*)+|', 
                 '^(?:\\[\\d+(?:,\\d+)*(?:\\:(?!\\d*\\:)(?:\\d+)?)*\\])')
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
   for (comp in comps) {                                   # do em all
@@ -52,6 +52,7 @@ verifyPatternSyntax <- function(json, pattern) {
 #' 
 #' @internal
 getPathsFromPattern <- function(json, pattern) {
+  stopifnot(isTruthyChr(json), isTruthyChr(pattern))
   # selectors split
   selectors <- Filter(function(p) p != '', 
                       strsplit(pattern, ',', fixed=TRUE)[[1]])
@@ -59,12 +60,59 @@ getPathsFromPattern <- function(json, pattern) {
   rtn <- unlist(lapply(selectors, function(s) {
     if (grepl('\\*', s, perl=TRUE)) {  # GET ALL *matches in a vector
       handleWildCard(json, s)
-    } else {
+    } 
+  ##else if (grepl('\\[\\d+\\:\\]', s, perl=TRUE)) {
+  ##  message('trailing colon')
+  ##} 
+    else {
       s
     }
   }))
   # serve
   return(rtn)
+}
+
+#'
+handleTrailingColon <- function(json, selector) {
+  stopifnot(isTruthyChr(json), isTruthyChr(selector))
+  # regex 2 match the trailing colon part of the selector
+  rex.colon.key <- '\\[\\d+\\:\\]'
+  # extract the trailing colon part of the selector
+  colon.key <- regmatches(selector, regexpr(rex.colon.key, selector, perl=TRUE))
+  # get prefix of colon indexer
+  pre <- if ((pos <- regexpr(colon.key, selector, fixed=TRUE)[1]) > 1L) {
+    substr(selector, 1, pos - 1L)
+  } else {
+    ''
+  }
+  # array atoms to get length from
+  arr.atoms <- gsub('^\\[|\\]$', '', 
+                    if (pre != '') jsonmatch(json, pre) else json, 
+                    perl=TRUE)
+  # regex 2 match commas neither enclosed in brackets nor quotes
+  rex.arr.len <- paste0(',(?![^\\[\\]]*+\\])(?![^\\{\\}]*+\\})', 
+                        '(?=(?:(?:[^"]*"){2})*[^"]*$)')
+  # get the array length - with base zero
+  arr.len <- lengths(regmatches(arr.atoms, gregexpr(rex.arr.len, 
+                                               arr.atoms, 
+                                               perl=TRUE)))
+  # construct a complete array indexer
+  xolon.key <- paste0(substr(colon.key, 1, nchar(colon.key) - 1L),
+                      as.character(arr.len), 
+                      ']')
+  # swap original key 4 xolon.key
+  glued <- sub(colon.key, xolon.key, selector, fixed=TRUE)
+  
+  # check 4 remainders
+  clued <- sapply(glued, function(gk) {
+    if (grepl('\\[\\d+\\:\\]', gk, perl=TRUE)) {
+      handleTrailingColon(json, gk)
+    } else {
+      gk
+    }
+  }, USE.NAMES=FALSE)
+  # 
+  clued
 }
 
 #' Returns a chr vector of wildcard matched object keys
@@ -75,6 +123,7 @@ getPathsFromPattern <- function(json, pattern) {
 #' 
 #' @internal
 handleWildCard <- function(json, selector) {
+  stopifnot(isTruthyChr(json), isTruthyChr(selector))
   # regex 2 match the wildcard part of the selector
   rex.wdcd.key <- paste0('\\.[[:alnum:]]+\\*[[:alnum:]]+|',  # <- this case 1st
                          '\\.[[:alnum:]]+\\*|',
