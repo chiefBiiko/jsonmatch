@@ -30,7 +30,7 @@ verifyPatternSyntax <- function(json, pattern) {
   if (!struct || !valid) return(FALSE)
   # setup syntax check                                    # master regex
   rex <- paste0('^(?:\\.\\*?[[:alnum:]]?\\*?[[:alnum:]]?)+|', 
-                '^(?:\\[\\d+(?:,\\d+)*(?:\\:\\d+)*\\])')
+                '^(?:\\[\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*\\])')
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
   for (comp in comps) {                                   # do em all
     red <- comp                                           # reduction base
@@ -142,8 +142,14 @@ getKeysFromPaths <- function(paths) {
   # make a 2D list of chr obj keys and numeric indices
   subseq <- lapply(nodots, function(nd) {
     lapply(nd, function(d) {
-      if (grepl('\\[[[:digit:],:]+\\]', d, perl=TRUE)) {
-        eval(parse(text=sub('\\[([[:digit:],:]*)\\]', 'c(\\1)', d)))
+      if (grepl('^\\[\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*\\]$', 
+                d, 
+                perl=TRUE)) {
+        # parse in integers
+        eval(parse(text=sub('^\\[(\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*)\\]$', 
+                            'c(\\1)', 
+                            d, 
+                            perl=TRUE)))
       } else {
         d
       }

@@ -11,6 +11,7 @@ testthat::test_that('return matches explicit pattern', {
   waka <- jsonlite::toJSON(list(a=c(1,2),b=list(c(77,44), 'doo')))
   kafa <- jsonlite::toJSON(list(list(list(36)), list(44)))
   kaka <- jsonlite::toJSON(list(abc=1L, dbe=2L))
+  lala <- jsonlite::toJSON(list('A', 'B', 'C', 'D', 'E', 'F'))
   
   # single item
   testthat::expect_identical(jsonmatch(saka, '.b[0]'), 
@@ -31,6 +32,18 @@ testthat::test_that('return matches explicit pattern', {
   testthat::expect_identical(jsonmatch(saka, '.a'),
                              structure('[false]', class='json'))
   
+  # throws on incorrect horizontal array indexing
+  testthat::expect_error(jsonmatch(kafa, '[0][0][1]'))
+  testthat::expect_error(jsonmatch(kafa, '[0][1][0]'))
+  
+  # gracefully handles incorrect vertical array indexing at a path's base
+  testthat::expect_identical(jsonmatch(kafa, '[1][0][0]'),  # correct: '[1][0]'
+                             structure('[44]', class='json'))
+  
+  # unboxing
+  testthat::expect_identical(jsonmatch(kaka, '.*', auto_unbox=TRUE),
+                             structure('{"abc":1,"dbe":2}', class='json'))
+  
   # 2D array pt 1
   testthat::expect_identical(jsonmatch(waka, '.b[0]'),
                              structure('[77,44]', class='json'))
@@ -43,16 +56,8 @@ testthat::test_that('return matches explicit pattern', {
   testthat::expect_identical(jsonmatch(kafa, '[0][0][0]'),
                              structure('[36]', class='json'))
   
-  # throws on incorrect horizontal array indexing
-  testthat::expect_error(jsonmatch(kafa, '[0][0][1]'))
-  testthat::expect_error(jsonmatch(kafa, '[0][1][0]'))
-  
-  # gracefully handles incorrect vertical array indexing at a path's base
-  testthat::expect_identical(jsonmatch(kafa, '[1][0][0]'),  # correct: '[1][0]'
-                             structure('[44]', class='json'))
-  
-  # unboxing
-  testthat::expect_identical(jsonmatch(kaka, '.*', auto_unbox=TRUE),
-                             structure('{"abc":1,"dbe":2}', class='json'))
+  # array edges
+  testthat::expect_error(jsonmatch(lala, '[1:]'))
+  # should be: structure('[["B"],["C"],["D"],["E"],["F"]]', class='json')
   
 })

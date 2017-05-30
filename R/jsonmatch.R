@@ -1,6 +1,7 @@
 # jsonmatch
 
-# TODO: -fix multiple array indexing - DONE
+# TODO: -SUGAR: allow open ended array indexing with a trailing colon [0:]
+#       -fix multiple array indexing - DONE
 #       -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props - DONE
