@@ -30,7 +30,7 @@ verifyPatternSyntax <- function(json, pattern) {
   if (!struct || !valid) return(FALSE)
   # setup syntax check                                    # master regex
   rex <- paste0('^(?:\\.\\*?[[:alnum:]]?\\*?[[:alnum:]]?)+|', 
-                '^(?:\\[\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*\\])')
+                '^(?:\\[\\d+(?:,\\d+)*(?:\\:(?!\\d*\\:)(?:\\d+)?)*\\])')
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
   for (comp in comps) {                                   # do em all
     red <- comp                                           # reduction base
