@@ -1,7 +1,6 @@
 # jsonmatch
 
-# TODO: -SUGAR: allow open ended array indexing with a trailing colon [0:]
-#       -fix matching arrays - NOT DONE
+# TODO: -fix matching arrays - NOT DONE
 #       -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
 #       -allow wildcard matching for obj.props - DONE
@@ -12,6 +11,7 @@
 #       -write a command line version of jsonmatch
 #       -work on matching multi-D arrays - DONE
 #       -checkstop that pattern is valid - DONE
+#       -SUGAR: allow open ended array indexing with a trailing colon [0:]
 
 #' Simple matching on JSON
 #' 
