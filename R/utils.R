@@ -118,12 +118,22 @@ verifyPatternSyntax <- function(json, pattern) {
   } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {     # case obj
     strsplit(pattern, '', fixed=TRUE)[[1]][1] == '.'
   }
-  # check 4 invalid characters
-  valid <- !grepl('[^\\*\\.,\\:\\[\\]\\d[A-Za-z]]*', pattern, perl=TRUE)
+  # check 4 invalid characters ...
+  valid <- !grepl('[^[[:print:]]]*', pattern, perl=TRUE)
+  # ... when using the magic wildcard
+  wild <- !(grepl('\\*', pattern, perl=TRUE) &&
+            any(grepl('[^[:alnum:]]', 
+                      gsub('^"|"\\:$', '', 
+                           regmatches(json, 
+                                      gregexpr('"[^"]*"\\:', 
+                                               json, 
+                                               perl=TRUE))[[1]], 
+                           perl=TRUE), 
+                      perl=TRUE)))
   # early exit
-  if (!struct || !valid) return(FALSE)
+  if (!struct | !valid | !wild) return(FALSE)
   # setup syntax check                                    # master regex
-  rex <- paste0('^(?:\\.\\*?[[:alnum:]]*\\*?[[:alnum:]]*)+|', 
+  rex <- paste0('^(?:\\.\\*?[[:print:]]*\\*?[[:print:]]*)+|', 
                 '^(?:\\[\\d+(?:,\\d+)*(?:\\:(?!\\d*\\:)(?:\\d+)?)*\\])')
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
   for (comp in comps) {                                   # do em all
@@ -269,8 +279,8 @@ getKeysFromPaths <- function(paths) {
   stopifnot(is.character(paths))
   # split paths to path components
   comps <- strsplit(paths, 
-                    paste0('(?<=\\])(?=\\[)|(?<=[[:alnum:]])(?=\\[)|', 
-                           '(?<=\\])(?=\\.)|(?<=[[:alnum:]])(?=\\.)'), 
+                    paste0('(?<=\\])(?=\\[)|(?<=[[:print:]])(?=\\[)|', 
+                           '(?<=\\])(?=\\.)|(?<=[[:print:]])(?=\\.)'), 
                     perl=TRUE)
   # strip dots and \\s
   nodots <- lapply(comps, function(comp) {

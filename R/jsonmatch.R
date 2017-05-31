@@ -1,7 +1,9 @@
 # jsonmatch
 
-# TODO: -fix boxjson not boxing unclosed atoms - PENDING
+# TODO: -adjust verifyPatternSyntax for below GOTCHA - DONE
+#       -jsonlite::validate input JSON - PENDING
 #       -rearrange packaging - PENDING
+#       -fix boxjson not boxing unclosed atoms - DONE
 #       -fix matching arrays - DONE
 #       -erase all \\s in input json - DONE
 #       -use non-capturing regex groups where possible - DONE
@@ -14,6 +16,9 @@
 #       -checkstop that pattern is valid - DONE
 #       -SUGAR: allow open ended array indexing with a trailing colon [0:]
 #       -write a cli 4 jsonmatch
+
+# GOTCHA: Wildcard matching can only be used if all object keys in the input 
+#         JSON string contain alphanumeric characters [a-zA-Z0-9] only.
 
 #' Simple matching on JSON
 #' 
@@ -60,10 +65,15 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
              '}')
     }
   } else if (hasUnclosedChar(accu, ',')) {  # case 1 string in accu but multi atoms
+####cat('multi arr atoms\n', accu, '\n')
     paste0('[', accu, ']')
   } else {                         # case 1 string in accu and single atom
+####cat('single arr atoms\n', accu, '\n')
     packAtoms(accu)
   }
+ #  else {
+ #  boxjson::boxAtoms(accu)
+ #}
   # boxing
   if (auto_unbox) rtn <- boxjson::unboxAtoms(rtn)
   return(structure(rtn, class='json'))

@@ -9,6 +9,7 @@ testthat::test_that('return matches wildcard pattern', {
   daka <- jsonlite::toJSON(list(lo=list(ac=4L, ab=1L, lo=list(ac=2L, ab=3L))))
   laka <- jsonlite::toJSON(list(lo=list(ac=1L, ab=2L), lu=list(ac=3L, ab=4L)))
   kaka <- jsonlite::toJSON(list(abc=1L, dbe=2L))
+  punk <- jsonlite::toJSON(list(`a,${$r`=c(3,4), b=c(6,7)))
   
   # wildcard matching
   testthat::expect_identical(jsonmatch(maka, '.lo.a*,.ak'),
@@ -36,5 +37,8 @@ testthat::test_that('return matches wildcard pattern', {
   # wildcard solely
   testthat::expect_identical(jsonmatch(kaka, '.*'),
                              structure('{"abc":[1],"dbe":[2]}', class='json'))
+  
+  # unallowed characters in key when using the wildcard
+  testthat::expect_error(jsonmatch(punk, '.a*'))
   
 })
