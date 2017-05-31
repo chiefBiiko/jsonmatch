@@ -1,8 +1,8 @@
 # jsonmatch
 
-# TODO: -adjust verifyPatternSyntax for below GOTCHA - DONE
-#       -jsonlite::validate input JSON - PENDING
-#       -rearrange packaging - PENDING
+# TODO: -jsonlite::validate input JSON - PENDING
+#       -adjust verifyPatternSyntax for messages - DONE
+#       -rearrange packaging - DONE
 #       -fix boxjson not boxing unclosed atoms - DONE
 #       -fix matching arrays - DONE
 #       -erase all \\s in input json - DONE
@@ -16,9 +16,6 @@
 #       -checkstop that pattern is valid - DONE
 #       -SUGAR: allow open ended array indexing with a trailing colon [0:]
 #       -write a cli 4 jsonmatch
-
-# GOTCHA: Wildcard matching can only be used if all object keys in the input 
-#         JSON string contain alphanumeric characters [a-zA-Z0-9] only.
 
 #' Simple matching on JSON
 #' 
@@ -42,31 +39,19 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   # extraduce target value(s)
   accu <- vector('character', length(keys))
   for (i in seq(length(keys))) {
-    curr <- json                               # reduction base
+    curr <- json                                     # reduction base
     # reduce curr to target value
     for (key in keys[[i]]) {
-      if (is.character(key)) {                 # chr object keys
+      if (is.character(key)) {                       # chr object keys
         curr <- extractValueFromObjKey(curr, key)
-      } else {                                 # numeric array indices
+      } else {                                       # numeric array indices
         curr <- extractValueFromArrIndex(curr, key)
       }
     }
-    accu[i] <- curr                            # store target value
+    accu[i] <- curr                                  # store target value
   }
   # package
-  rtn <- 
-  if (length(accu) > 1L) {         # case multiple strings in accu
-    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # base array
-      paste0('[', paste0(packStruct(accu), collapse=','), ']')
-    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # base object
-      paste0('{', 
-             paste0(packStruct(accu, sub('^\\.', '', paths, perl=TRUE)), 
-                    collapse=','), 
-             '}')
-    }
-  } else {
-    boxjson::boxAtoms(accu)
-  }
+  rtn <- packStruct(accu, json, paths)
   # boxing
   if (auto_unbox) rtn <- boxjson::unboxAtoms(rtn)
   return(structure(rtn, class='json'))

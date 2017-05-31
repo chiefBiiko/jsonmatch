@@ -30,33 +30,6 @@ mutateInputJSON <- function(json) {
   return(json)  # serve
 }
 
-#' Does a string contain a character neither enclosed in brackets nor 
-#' double quotes?
-#'
-#' @param string Character vector of length 1L.
-#' @param character Single character to search for.
-#' @return Logical.
-#'
-#' @internal
-hasUnclosedChar <- function(string, character) {
-  stopifnot(is.character(string),
-            is.character(character),
-            nchar(character) == 1L)
-  # split to single characters
-  chars <- strsplit(string, '')[[1]]
-  # setup
-  opbr <- 0L
-  opqt <- 2L
-  # peep through
-  for (char in chars) {
-    if (char %in% c('[', '{')) opbr <- opbr + 1L
-    if (char %in% c(']', '}')) opbr <- opbr - 1L
-    if (char == '"') opqt <- opqt + 1L
-    if (char == character && (opbr == 0L && opqt %% 2L == 0L)) return(TRUE)
-  }
-  return(FALSE)
-}
-
 #' Splits a string on given character neither enclosed in brackets nor 
 #' double quotes
 #'
@@ -131,7 +104,19 @@ verifyPatternSyntax <- function(json, pattern) {
                            perl=TRUE), 
                       perl=TRUE)))
   # early exit
-  if (!struct | !valid | !wild) return(FALSE)
+  if (!struct) {
+    message('Incorrect entry reference in pattern.')
+    return(FALSE)
+  }
+  if (!valid) {
+    message('Input JSON contains non-printable characters.')
+    return(FALSE)
+  }
+  if (!wild) {
+    message('Wildcard matching can only be used if all object keys in',
+            'json contain alphanumeric characters [a-zA-Z0-9] only.')
+    return(FALSE)
+  }
   # setup syntax check                                    # master regex
   rex <- paste0('^(?:\\.\\*?[[:print:]]*\\*?[[:print:]]*)+|', 
                 '^(?:\\[\\d+(?:,\\d+)*(?:\\:(?!\\d*\\:)(?:\\d+)?)*\\])')
@@ -356,35 +341,37 @@ extractValueFromObjKey <- function(obj, key) {
 
 #' Packs atomic data in arrays, optionally adding keys
 #'
-#' @param accumulator Character vector of target values (JSON extracts).
-#' @param keys Character vector of keys to prefix target values with,
-#' if supplied must have same length as \code{accumulator}.
+#' @param accu Character vector of target values (JSON extracts).
+#' @param json Input JSON string.
+#' @param paths Subset pattern paths.
 #' @return Character vector.
 #'
 #' @internal
-packStruct <- function(accumulator, keys) {
-  stopifnot(is.character(accumulator),
-            missing(keys) || is.character(keys))
-  return(if (missing(keys)) {  # case no keys passed
-    sapply(accumulator, function(a) {
-      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {  # pack anything
-        cat('packing arr')
-        paste0('[', a, ']')
-      } else {                                         # already packed
-        a
-      }
-    }, USE.NAMES=FALSE) 
-  } else {                     # case keys passed
-    i <- 0L
-    sapply(accumulator, function(a) {
-      i <<- i + 1L
-      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {  # pack anything
-        cat('packing obj')
-        print(a)
-        paste0(paste0('"', keys[i], '"', ':'), '[', a, ']')
-      } else {                                         # already packed
-        paste0(paste0('"', keys[i], '"', ':'), a) 
-      }
-    }, USE.NAMES=FALSE)
-  })
+packStruct <- function(accu, json, paths) {
+  stopifnot(is.character(accu), isTruthyChr(json))
+  rtn <- keys <- vector('character')
+  i <- vector('integer')
+  if (length(accu) > 1L) {
+    if (!grepl('^\\{.*\\}$', json, perl=TRUE)) {        # base array
+      rtn <- paste0('[', 
+                    paste0(sapply(accu, boxjson::boxAtoms, USE.NAMES=FALSE), 
+                           collapse=','), 
+                    ']')
+    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # base object
+      i <- 0L
+      keys <- sub('^\\.', '', paths, perl=TRUE)
+      rtn <- paste0('{', 
+                    paste0(sapply(accu, function(a) {
+                      i <<- i + 1L
+                      paste0(paste0('"', keys[i], '"', ':'), 
+                             boxjson::boxAtoms(a))
+                    }, USE.NAMES=FALSE), 
+                    collapse=','), 
+                    '}')
+    }
+  } else if (length(accu) == 1L) {
+    rtn <- boxjson::boxAtoms(accu)
+  }
+  # serve
+  return(rtn)
 }
