@@ -362,18 +362,14 @@ extractValueFromObjKey <- function(obj, key) {
 #' @return Character vector.
 #'
 #' @internal
-packAtoms <- function(accumulator, keys) {
+packStruct <- function(accumulator, keys) {
   stopifnot(is.character(accumulator),
             missing(keys) || is.character(keys))
   return(if (missing(keys)) {  # case no keys passed
     sapply(accumulator, function(a) {
-      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {
-        if (grepl('^[[:alpha:]]', a, perl=TRUE) &&
-            !grepl('^null$|^false$|^true$', a, perl=TRUE)) {  # pack strings
-          paste0('["', a, '"]') 
-        } else {                                       # pack anything else
-          paste0('[', a, ']')
-        }
+      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {  # pack anything
+        cat('packing arr')
+        paste0('[', a, ']')
       } else {                                         # already packed
         a
       }
@@ -382,13 +378,10 @@ packAtoms <- function(accumulator, keys) {
     i <- 0L
     sapply(accumulator, function(a) {
       i <<- i + 1L
-      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {
-        if (grepl('^[[:alpha:]]', a, perl=TRUE) &&
-            !grepl('^null$|^false$', a, perl=TRUE)) {  # pack strings
-          paste0(paste0('"', keys[i], '"', ':'), '["', a, '"]')
-        } else {                                       # pack anything else
-          paste0(paste0('"', keys[i], '"', ':'), '[', a, ']')
-        }
+      if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {  # pack anything
+        cat('packing obj')
+        print(a)
+        paste0(paste0('"', keys[i], '"', ':'), '[', a, ']')
       } else {                                         # already packed
         paste0(paste0('"', keys[i], '"', ':'), a) 
       }

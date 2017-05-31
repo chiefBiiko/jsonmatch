@@ -57,10 +57,10 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   rtn <- 
   if (length(accu) > 1L) {         # case multiple strings in accu
     if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # base array
-      paste0('[', paste0(packAtoms(accu), collapse=','), ']')
+      paste0('[', paste0(packStruct(accu), collapse=','), ']')
     } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # base object
       paste0('{', 
-             paste0(packAtoms(accu, sub('^\\.', '', paths, perl=TRUE)), 
+             paste0(packStruct(accu, sub('^\\.', '', paths, perl=TRUE)), 
                     collapse=','), 
              '}')
     }
