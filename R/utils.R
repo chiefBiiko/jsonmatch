@@ -369,7 +369,7 @@ packAtoms <- function(accumulator, keys) {
     sapply(accumulator, function(a) {
       if (!grepl('(?:^\\[|^\\{).*(?:\\]$|\\}$)', a, perl=TRUE)) {
         if (grepl('^[[:alpha:]]', a, perl=TRUE) &&
-            !grepl('^null$|^false$', a, perl=TRUE)) {  # pack strings
+            !grepl('^null$|^false$|^true$', a, perl=TRUE)) {  # pack strings
           paste0('["', a, '"]') 
         } else {                                       # pack anything else
           paste0('[', a, ']')
