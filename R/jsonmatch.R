@@ -64,16 +64,9 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
                     collapse=','), 
              '}')
     }
-  } else if (hasUnclosedChar(accu, ',')) {  # case 1 string in accu but multi atoms
-####cat('multi arr atoms\n', accu, '\n')
-    paste0('[', accu, ']')
-  } else {                         # case 1 string in accu and single atom
-####cat('single arr atoms\n', accu, '\n')
-    packAtoms(accu)
+  } else {
+    boxjson::boxAtoms(accu)
   }
- #  else {
- #  boxjson::boxAtoms(accu)
- #}
   # boxing
   if (auto_unbox) rtn <- boxjson::unboxAtoms(rtn)
   return(structure(rtn, class='json'))
