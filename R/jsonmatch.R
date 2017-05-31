@@ -31,7 +31,7 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   # mutate input
   json <- mutateInputJSON(json)
   # do a syntax check
-  if (!verifyPatternSyntax(json, pattern)) stop('invalid pattern syntax')
+  if (!verifyPatternSyntax(json, pattern)) stop('Invalid pattern syntax.')
   # split pattern to paths
   paths <- getPathsFromPattern(json, pattern)
   # get keys from paths
@@ -40,8 +40,7 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   accu <- vector('character', length(keys))
   for (i in seq(length(keys))) {
     curr <- json                                     # reduction base
-    # reduce curr to target value
-    for (key in keys[[i]]) {
+    for (key in keys[[i]]) {                         # reduce curr to target
       if (is.character(key)) {                       # chr object keys
         curr <- extractValueFromObjKey(curr, key)
       } else {                                       # numeric array indices
@@ -50,9 +49,10 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
     }
     accu[i] <- curr                                  # store target value
   }
-  # package
+  # packing
   rtn <- packStruct(accu, json, paths)
   # boxing
   if (auto_unbox) rtn <- boxjson::unboxAtoms(rtn)
+  # serving
   return(structure(rtn, class='json'))
 }
