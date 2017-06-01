@@ -150,11 +150,9 @@ getPathsFromPattern <- function(json, pattern) {
   rtn <- unlist(lapply(selectors, function(s) {
     if (grepl('\\*', s, perl=TRUE)) {  # GET ALL *matches in a vector
       handleWildCard(json, s)
-    } 
-  ##else if (grepl('\\[\\d+\\:\\]', s, perl=TRUE)) {
-  ##  message('trailing colon')
-  ##} 
-    else {
+    } else if (grepl('\\[\\d+\\:\\]', s, perl=TRUE)) {  # NEW
+      handleTrailingColon(json, s)                      # NEW
+    } else {
       s
     }
   }))
@@ -162,7 +160,13 @@ getPathsFromPattern <- function(json, pattern) {
   return(rtn)
 }
 
+#' Fixes a trailing colon in array selectors
 #'
+#' @param json JSON string.
+#' @param selector Object selector/path containing a trailing colon.
+#' @return Chr vector.
+#' 
+#' @internal
 handleTrailingColon <- function(json, selector) {
   stopifnot(isTruthyChr(json), isTruthyChr(selector))
   # regex 2 match the trailing colon part of the selector

@@ -62,8 +62,13 @@ testthat::test_that('return matches explicit pattern', {
                              structure('[[1],[2],[3],[[44],[55],[66]]]', 
                                        class='json'))
   
-  # array edges
-  testthat::expect_error(jsonmatch(lala, '.acab[1:]'))
-  # should be: structure('[["B"],["C"],["D"],["E"],["F"]]', class='json')
+  # array edges - trailing colon pt 1
+  testthat::expect_identical(jsonmatch(lala, '.acab[1:]'),
+                             structure('["B","C","D","E","F"]', 
+                                       class='json'))
+  
+  # array edges - trailing colon pt 2
+  testthat::expect_identical(jsonmatch(tata, '.acab[3][1:]'), 
+                             structure('[[55],[66]]', class='json'))
   
 })
