@@ -324,7 +324,7 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
 extractValueFromObjKey <- function(obj, key) {
   stopifnot(isTruthyChr(obj), isTruthyChr(key),
             grepl(paste0('"', key,'"\\:'), obj, perl=TRUE))
-  chars <- strsplit(obj, '')[[1]]
+  chars <- strsplit(obj, '', fixed=TRUE)[[1]]
   beg <- pos <- regexpr(paste0('"', key,'":'), obj)[1] + nchar(key) + 3L
   opbr <- 0L
   repeat {
@@ -351,7 +351,7 @@ packStruct <- function(accu, json, paths) {
   rtn <- keys <- vector('character')
   i <- vector('integer')
   if (length(accu) > 1L) {
-    if (!grepl('^\\{.*\\}$', json, perl=TRUE)) {        # base array
+    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # base array
       rtn <- paste0('[', 
                     paste0(sapply(accu, boxjson::boxAtoms, USE.NAMES=FALSE), 
                            collapse=','), 
