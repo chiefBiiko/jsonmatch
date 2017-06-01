@@ -27,11 +27,11 @@
 #' 
 #' @export
 jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
-  stopifnot(isTruthyChr(json), isTruthyChr(pattern))
-  # mutate input
+  stopifnot(isTruthyChr(json), isTruthyChr(pattern), is.logical(auto_unbox))
+  # mutate json for safe processing
   json <- mutateInputJSON(json)
   # do a syntax check
-  if (!verifyPatternSyntax(json, pattern)) stop('Invalid pattern syntax.')
+  if (!(vps <- verifyPatternSyntax(json, pattern))) stop(attr(vps, 'msg'))
   # split pattern to paths
   paths <- getPathsFromPattern(json, pattern)
   # get keys from paths
@@ -41,9 +41,9 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
   for (i in seq(length(keys))) {
     curr <- json                                     # reduction base
     for (key in keys[[i]]) {                         # reduce curr to target
-      if (is.character(key)) {                       # chr object keys
+      if (is.character(key)) {                       # object keys
         curr <- extractValueFromObjKey(curr, key)
-      } else {                                       # numeric array indices
+      } else if (is.numeric(key)) {                  # array indices
         curr <- extractValueFromArrIndex(curr, key)
       }
     }

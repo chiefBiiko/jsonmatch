@@ -92,10 +92,10 @@ verifyPatternSyntax <- function(json, pattern) {
     strsplit(pattern, '', fixed=TRUE)[[1]][1] == '.'
   }
   # check 4 invalid characters ...
-  valid <- !grepl('[^[[:print:]]]*', pattern, perl=TRUE)
+  valid <- !grepl('[^[[:print:]]]*', pattern, perl=TRUE)  # chr class locked
   # ... when using the magic wildcard
   wild <- !(grepl('\\*', pattern, perl=TRUE) &&
-            any(grepl('[^[:alnum:]]', 
+            any(grepl('[^[:alnum:]]',                     # chr class locked
                       gsub('^"|"\\:$', '', 
                            regmatches(json, 
                                       gregexpr('"[^"]*"\\:', 
@@ -105,17 +105,16 @@ verifyPatternSyntax <- function(json, pattern) {
                       perl=TRUE)))
   # early exit
   if (!struct) {
-    message('Incorrect entry reference in pattern.')
-    return(FALSE)
+    return(structure(FALSE, msg='Incorrect entry reference in pattern'))
   }
   if (!valid) {
-    message('Input JSON contains non-printable characters.')
-    return(FALSE)
+    return(structure(FALSE, 
+                     msg='input JSON contains non-printable characters'))
   }
   if (!wild) {
-    message('Wildcard matching can only be used if all object keys in',
-            'json contain alphanumeric characters [a-zA-Z0-9] only.')
-    return(FALSE)
+    return(structure(FALSE, 
+                     msg='wildcards can only be used if all object keys in',
+                     'json contain alphanumeric characters [a-zA-Z0-9] only'))
   }
   # setup syntax check                                    # master regex
   rex <- paste0('^(?:\\.\\*?[[:print:]]*\\*?[[:print:]]*)+|', 
@@ -124,7 +123,9 @@ verifyPatternSyntax <- function(json, pattern) {
   for (comp in comps) {                                   # do em all
     red <- comp                                           # reduction base
     repeat {                                              # do predicate reduction
-      if (!grepl(rex, red, perl=TRUE)) return(FALSE)    # check head
+      if (!grepl(rex, red, perl=TRUE)) {                # check head
+        return(structure(FALSE, msg='syntax error'))
+      }
       red <- sub(rex, '', red, perl=TRUE)               # cut head
       if (nchar(red) == 0L) break                       # trapdoor
     }  
@@ -307,10 +308,8 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
   arr.sub <- cospl[index + 1]
   # error out
   if (anyNA(arr.sub)) stop('index out of bounds')
-  # correctly quote string literals within subset
-  rtn <- gsub('([^[:alpha:]])","([^[:alpha:]])', '\\1,\\2', 
-              paste0(arr.sub, collapse='","'),
-              perl=TRUE)
+  # collapse
+  rtn <- paste0(arr.sub, collapse=',')
   # serve
   return(rtn)
 }
@@ -324,7 +323,7 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
 #' @internal
 extractValueFromObjKey <- function(obj, key) {
   stopifnot(isTruthyChr(obj), isTruthyChr(key),
-            grepl(paste0('"', key,'":'), obj, perl=TRUE))
+            grepl(paste0('"', key,'"\\:'), obj, perl=TRUE))
   chars <- strsplit(obj, '')[[1]]
   beg <- pos <- regexpr(paste0('"', key,'":'), obj)[1] + nchar(key) + 3L
   opbr <- 0L
@@ -348,7 +347,7 @@ extractValueFromObjKey <- function(obj, key) {
 #'
 #' @internal
 packStruct <- function(accu, json, paths) {
-  stopifnot(is.character(accu), isTruthyChr(json))
+  stopifnot(is.character(accu), isTruthyChr(json), isTruthyChr(paths))
   rtn <- keys <- vector('character')
   i <- vector('integer')
   if (length(accu) > 1L) {
