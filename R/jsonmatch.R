@@ -1,6 +1,7 @@
 # jsonmatch
 
-# TODO: -jsonlite::validate input JSON - PENDING
+# TODO: -update utils - PENDING
+#       -jsonlite::validate input JSON - PENDING
 #       -adjust verifyPatternSyntax for messages - DONE
 #       -rearrange packaging - DONE
 #       -fix boxjson not boxing unclosed atoms - DONE
