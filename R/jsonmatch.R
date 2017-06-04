@@ -1,6 +1,6 @@
 # jsonmatch
 
-# TODO: -update utils - PENDING
+# TODO: -update code with new utils - PENDING
 #       -jsonlite::validate input JSON - PENDING
 #       -adjust verifyPatternSyntax for messages - DONE
 #       -rearrange packaging - DONE

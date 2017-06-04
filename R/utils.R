@@ -9,6 +9,54 @@ isTruthyChr <- function(char) {
   }
 }
 
+#' Is JSON an array?
+#'
+#' @param json JSON string.
+#' @return Logical.
+#'
+#' @internal
+isArray <- function(json) {
+  stopifnot(isTruthyChr(json))
+  return(grepl('^\\[.*\\]$', json, perl=TRUE))
+}
+
+#' Is JSON an object?
+#'
+#' @param json JSON string.
+#' @return Logical.
+#'
+#' @internal
+isObject <- function(json) {
+  stopifnot(isTruthyChr(json))
+  return(grepl('^\\{.*\\}$', json, perl=TRUE))
+}
+
+#' Strips an array's outer brackets
+#'
+#' @param json JSON array.
+#' @return Stripped JSON array.
+#'
+#' @internal
+stripArray <- function(json) {
+  stopifnot(isTruthyChr(json))
+  if (grepl('\\[.+\\]', json, perl=TRUE)) {
+    return(gsub('^\\[|\\]$', '', json, perl=TRUE))
+  } else {
+    return(json)  
+  }
+}
+
+#' Strips an object's outer brackets
+#'
+#' @param json JSON object.
+#' @return Stripped JSON object.
+#'
+#' @internal
+stripObject <- function(json) {
+  stopifnot(isTruthyChr(json))
+  return(gsub('^\\{|\\}$', '', json, perl=TRUE))
+}
+
 #' Mutates input JSON for safe processing
 #' 
 #' @param json Input JSON.
@@ -38,24 +86,32 @@ mutateInputJSON <- function(json) {
 #' @return Chr vector.
 #'
 #' @internal
-splitOnUnclosedChar <- function(string, character, keep=FALSE) {
-  stopifnot(is.character(string),
-            is.character(character),
-            nchar(character) == 1L,
+splitOnUnclosedChar <- function(string, char, keep=FALSE) {
+  stopifnot(is.character(string), is.character(char), nchar(char) == 1L,
             is.logical(keep))
   # split to single characters
-  chars <- strsplit(string, '')[[1]]
+  chars <- strsplit(string, '', fixed=TRUE)[[1]]
   # setup
-  opbr <- 0L
-  opqt <- 2L
-  last.cut <- 0L
+  opbr <- 0L        # if opbr is zero we r not in a struct
+  opqt <- 2L        # counts double quotes
+  nsqt <- list(2L)  # counts nested double quotes
+  last.cut <- 0L    # tracks last slice index
   accu <- vector('character')
   # peep through
   for (i in seq(length(chars))) {
     if (chars[i] %in% c('[', '{')) opbr <- opbr + 1L
     if (chars[i] %in% c(']', '}')) opbr <- opbr - 1L
     if (chars[i] == '"') opqt <- opqt + 1L
-    if (chars[i] == character && (opbr == 0L && opqt %% 2L == 0L)) {
+    if (grepl('\\\\+', chars[i], perl=TRUE) && chars[i + 1L] == '"') {
+      if (!chars[i] %in% names(nsqt)) {
+        nsqt[[chars[i]]] <- 2L + 1L
+      } else if (chars[i] %in% names(nsqt)) {
+        nsqt[[chars[i]]] <- nsqt[[chars[i]]] + 1L
+      }
+    }
+    if (chars[i] == char && 
+        (opbr == 0L && opqt %% 2L == 0L  && 
+         all(unlist(nsqt) %% 2L == 0L))) {
       if (!keep) {
         accu <- append(accu, substr(string, last.cut + 1L, i - 1L))
       } else {  # keep split character
@@ -75,7 +131,6 @@ splitOnUnclosedChar <- function(string, character, keep=FALSE) {
   # serve
   return(accu)
 }
-
 #' Performs a syntax check on pattern
 #' 
 #' @param json JSON string.
