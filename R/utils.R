@@ -17,7 +17,7 @@ isTruthyChr <- function(char) {
 #' @internal
 isArray <- function(json) {
   stopifnot(isTruthyChr(json))
-  return(grepl('^\\[.*\\]$', json, perl=TRUE))
+  return(grepl('^\\[.+\\]$', json, perl=TRUE))
 }
 
 #' Is JSON an object?
@@ -28,7 +28,7 @@ isArray <- function(json) {
 #' @internal
 isObject <- function(json) {
   stopifnot(isTruthyChr(json))
-  return(grepl('^\\{.*\\}$', json, perl=TRUE))
+  return(grepl('^\\{.+\\}$', json, perl=TRUE))
 }
 
 #' Strips an array's outer brackets
@@ -39,7 +39,7 @@ isObject <- function(json) {
 #' @internal
 stripArray <- function(json) {
   stopifnot(isTruthyChr(json))
-  if (grepl('\\[.+\\]', json, perl=TRUE)) {
+  if (isArray(json)) {
     return(gsub('^\\[|\\]$', '', json, perl=TRUE))
   } else {
     return(json)  
@@ -54,7 +54,11 @@ stripArray <- function(json) {
 #' @internal
 stripObject <- function(json) {
   stopifnot(isTruthyChr(json))
-  return(gsub('^\\{|\\}$', '', json, perl=TRUE))
+  if (isObject(json)) {
+    return(gsub('^\\{|\\}$', '', json, perl=TRUE))
+  } else {
+    return(json)  
+  }
 }
 
 #' Mutates input JSON for safe processing
@@ -141,9 +145,9 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
 verifyPatternSyntax <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
   # root structure
-  struct <- if (grepl('^\\[.*\\]$', json, perl=TRUE)) {  # case arr
+  struct <- if (isArray(json)) {  # case arr
     strsplit(pattern, '', fixed=TRUE)[[1]][1] == '['
-  } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {     # case obj
+  } else if (isObject(json)) {     # case obj
     strsplit(pattern, '', fixed=TRUE)[[1]][1] == '.'
   }
   # check 4 invalid characters ...
@@ -168,8 +172,9 @@ verifyPatternSyntax <- function(json, pattern) {
   }
   if (!wild) {
     return(structure(FALSE, 
-                     msg='wildcards can only be used if all object keys in',
-                     'json contain alphanumeric characters [a-zA-Z0-9] only'))
+                     msg=paste('wildcards can only be used if all object',
+                               'keys in json contain alphanumeric',
+                               'characters [a-zA-Z0-9] only')))
   }
   # setup syntax check                                    # master regex
   rex <- paste0('^(?:\\.\\*?[[:print:]]*\\*?[[:print:]]*)+|', 
@@ -177,12 +182,11 @@ verifyPatternSyntax <- function(json, pattern) {
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
   for (comp in comps) {                                   # do em all
     red <- comp                                           # reduction base
-    repeat {                                              # do predicate reduction
+    while (nchar(red) > 0L) {                           # do predicate reduction
       if (!grepl(rex, red, perl=TRUE)) {                # check head
-        return(structure(FALSE, msg='syntax error'))
+        return(structure(FALSE, msg='syntax error'))    # spotted an error
       }
       red <- sub(rex, '', red, perl=TRUE)               # cut head
-      if (nchar(red) == 0L) break                       # trapdoor
     }  
   }
   # exit
@@ -235,9 +239,7 @@ handleTrailingColon <- function(json, selector) {
     ''
   }
   # array atoms to get length from
-  arr.atoms <- gsub('^\\[|\\]$', '', 
-                    if (pre != '') jsonmatch(json, pre) else json, 
-                    perl=TRUE)
+  arr.atoms <- stripArray(if (pre != '') jsonmatch(json, pre) else json)
   # get the array length - with base zero
   arr.len <- length(splitOnUnclosedChar(arr.atoms, ',')) - 1L
   # construct a complete array indexer
@@ -362,7 +364,7 @@ getKeysFromPaths <- function(paths) {
 extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
   stopifnot(isTruthyChr(arr), is.numeric(index), index %% 1L == 0L)
   # split arr contents on comma not enclosed in [], {} or ""
-  cospl <- splitOnUnclosedChar(gsub('^\\[|\\]$', '', arr, perl=TRUE), ',')
+  cospl <- splitOnUnclosedChar(stripArray(arr), ',')
   # get atoms out of array
   arr.sub <- cospl[index + 1]
   # error out
@@ -410,12 +412,12 @@ packStruct <- function(accu, json, paths) {
   rtn <- keys <- vector('character')
   i <- vector('integer')
   if (length(accu) > 1L) {
-    if (grepl('^\\[.*\\]$', json, perl=TRUE)) {         # base array
+    if (isArray(json)) {          # base array
       rtn <- paste0('[', 
                     paste0(sapply(accu, boxjson::boxAtoms, USE.NAMES=FALSE), 
                            collapse=','), 
                     ']')
-    } else if (grepl('^\\{.*\\}$', json, perl=TRUE)) {  # base object
+    } else if (isObject(json)) {  # base object
       i <- 0L
       keys <- sub('^\\.', '', paths, perl=TRUE)
       rtn <- paste0('{', 

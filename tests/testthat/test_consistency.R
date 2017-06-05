@@ -71,4 +71,7 @@ testthat::test_that('return matches explicit pattern', {
   testthat::expect_identical(jsonmatch(tata, '.acab[3][1:]'), 
                              structure('[[55],[66]]', class='json'))
   
+  # strict mode
+  testthat::expect_error(jsonmatch('[0,1,0,1,0,1,1,0,1,0', '[0:7]'))
+  
 })

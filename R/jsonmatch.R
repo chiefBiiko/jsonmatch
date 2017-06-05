@@ -1,8 +1,8 @@
 # jsonmatch
 
-# TODO: -fix boxing of array siblings
-#       -update code with new utils - PENDING
-#       -jsonlite::validate input JSON - PENDING
+# TODO: -fix boxing of array siblings - DONE
+#       -update code with new utils - DONE
+#       -jsonlite::validate input JSON - DONE
 #       -adjust verifyPatternSyntax for messages - DONE
 #       -rearrange packaging - DONE
 #       -fix boxjson not boxing unclosed atoms - DONE
@@ -16,7 +16,7 @@
 #       -allow file references - DONE
 #       -work on matching multi-D arrays - DONE
 #       -checkstop that pattern is valid - DONE
-#       -SUGAR: allow open ended array indexing with a trailing colon [0:]
+#       -SUGAR: allow open ended array indexing with a trailing colon [0:] - DONE
 #       -write a cli 4 jsonmatch
 
 #' Simple matching on JSON
@@ -28,8 +28,11 @@
 #' ...
 #' 
 #' @export
-jsonmatch <- function(json, pattern, auto_unbox=FALSE) {
-  stopifnot(isTruthyChr(json), isTruthyChr(pattern), is.logical(auto_unbox))
+jsonmatch <- function(json, pattern, auto_unbox=FALSE, strict=TRUE) {
+  stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
+            is.logical(auto_unbox), is.logical(strict))
+  # use strict
+  if (strict && !jsonlite::validate(json)) stop('invalid json') 
   # mutate json for safe processing
   json <- mutateInputJSON(json)
   # do a syntax check
