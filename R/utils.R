@@ -1,8 +1,13 @@
 # jsonmatch utils
 
+#' Is character vector with number of characters >= 1?
+#'
+#' @param x R object.
+#' @return Logical.
+#'
 #' @internal
-isTruthyChr <- function(char) {
-  if (is.character(char) && nchar(char) > 0L) {
+isTruthyChr <- function(x) {
+  if (is.character(x) && nchar(x) > 0L) {
     return(TRUE)
   } else {
     return(FALSE)
