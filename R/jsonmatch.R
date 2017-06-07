@@ -31,10 +31,10 @@
 jsonmatch <- function(json, pattern, auto_unbox=FALSE, strict=TRUE) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
             is.logical(auto_unbox), is.logical(strict))
-  # use strict
-  if (strict && !jsonlite::validate(json)) stop('invalid json') 
   # mutate json for safe processing
   json <- mutateInputJSON(json)
+  # use strict
+  if (strict && !jsonlite::validate(json)) stop('invalid json')
   # do a syntax check
   if (!(vps <- verifyPatternSyntax(json, pattern))) stop(attr(vps, 'msg'))
   # split pattern to paths
