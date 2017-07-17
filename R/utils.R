@@ -47,7 +47,7 @@ stripArray <- function(json) {
   if (isArray(json)) {
     return(gsub('^\\[|\\]$', '', json, perl=TRUE))
   } else {
-    return(json)  
+    return(json)
   }
 }
 
@@ -62,32 +62,32 @@ stripObject <- function(json) {
   if (isObject(json)) {
     return(gsub('^\\{|\\}$', '', json, perl=TRUE))
   } else {
-    return(json)  
+    return(json)
   }
 }
 
 #' Mutates input JSON for safe processing
-#' 
+#'
 #' @param json Input JSON.
 #' @return JSON string.
-#' 
+#'
 #' @internal
 mutateInputJSON <- function(json) {
   stopifnot(isTruthyChr(json))
   # allow file references
   if (file.exists(json)) {
-    json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '', 
-                 paste0(readLines(json, warn=FALSE), collapse=''), 
+    json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '',
+                 paste0(readLines(json, warn=FALSE), collapse=''),
                  perl=TRUE)
   } else if (grepl('\\s(?=(?:(?:[^"]*"){2})*[^"]*$)', json, perl=TRUE)) {
     json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '', json, perl=TRUE)
   }
   # boxing
-  if (boxjson::hasUnboxedAtoms(json)) json <- boxjson::boxAtoms(json)
+  if (boxjson::hasUnboxedAtom(json)) json <- boxjson::boxAtoms(json)
   return(json)  # serve
 }
 
-#' Splits a string on given character neither enclosed in brackets nor 
+#' Splits a string on given character neither enclosed in brackets nor
 #' double quotes
 #'
 #' @param string Character vector of length 1L.
@@ -118,8 +118,8 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
         nsqt[[chars[i]]] <- nsqt[[chars[i]]] + 1L
       }
     }
-    if (chars[i] == char && 
-        (opbr == 0L && opqt %% 2L == 0L  && 
+    if (chars[i] == char &&
+        (opbr == 0L && opqt %% 2L == 0L  &&
          all(unlist(nsqt) %% 2L == 0L))) {
       if (!keep) {
         accu <- append(accu, substr(string, last.cut + 1L, i - 1L))
@@ -141,11 +141,11 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
   return(accu)
 }
 #' Performs a syntax check on pattern
-#' 
+#'
 #' @param json JSON string.
 #' @param pattern Chr vector of length 1 specifying the subset pattern.
 #' @return Logical indicating whether the syntax is correct.
-#' 
+#'
 #' @internal
 verifyPatternSyntax <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
@@ -160,29 +160,29 @@ verifyPatternSyntax <- function(json, pattern) {
   # ... when using the magic wildcard
   wild <- !(grepl('\\*', pattern, perl=TRUE) &&
             any(grepl('[^[:alnum:]]',                     # chr class locked
-                      gsub('^"|"\\:$', '', 
-                           regmatches(json, 
-                                      gregexpr('"[^"]*"\\:', 
-                                               json, 
-                                               perl=TRUE))[[1]], 
-                           perl=TRUE), 
+                      gsub('^"|"\\:$', '',
+                           regmatches(json,
+                                      gregexpr('"[^"]*"\\:',
+                                               json,
+                                               perl=TRUE))[[1]],
+                           perl=TRUE),
                       perl=TRUE)))
   # early exit
   if (!struct) {
     return(structure(FALSE, msg='Incorrect entry reference in pattern'))
   }
   if (!valid) {
-    return(structure(FALSE, 
+    return(structure(FALSE,
                      msg='input JSON contains non-printable characters'))
   }
   if (!wild) {
-    return(structure(FALSE, 
+    return(structure(FALSE,
                      msg=paste('wildcards can only be used if all object',
                                'keys in json contain alphanumeric',
                                'characters [a-zA-Z0-9] only')))
   }
   # setup syntax check                                    # master regex
-  rex <- paste0('^(?:\\.\\*?[[:print:]]*\\*?[[:print:]]*)+|', 
+  rex <- paste0('^(?:\\.\\*?[[:print:]]*\\*?[[:print:]]*)+|',
                 '^(?:\\[\\d+(?:,\\d+)*(?:\\:(?!\\d*\\:)(?:\\d+)?)*\\])')
   comps <- strsplit(pattern, ',', fixed=TRUE)[[1]]        # pattern components
   for (comp in comps) {                                   # do em all
@@ -192,23 +192,23 @@ verifyPatternSyntax <- function(json, pattern) {
         return(structure(FALSE, msg='syntax error'))    # spotted an error
       }
       red <- sub(rex, '', red, perl=TRUE)               # cut head
-    }  
+    }
   }
   # exit
   return(TRUE)
 }
 
 #' Splits pattern to paths while handling the wildcard
-#' 
+#'
 #' @param json JSON string.
 #' @param pattern Subset pattern.
 #' @return Chr vector.
-#' 
+#'
 #' @internal
 getPathsFromPattern <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
   # selectors split
-  selectors <- Filter(function(p) p != '', 
+  selectors <- Filter(function(p) p != '',
                       strsplit(pattern, ',', fixed=TRUE)[[1]])
   # make a flat vector
   rtn <- unlist(lapply(selectors, function(s) {
@@ -229,7 +229,7 @@ getPathsFromPattern <- function(json, pattern) {
 #' @param json JSON string.
 #' @param selector Object selector/path containing a trailing colon.
 #' @return Chr vector.
-#' 
+#'
 #' @internal
 handleTrailingColon <- function(json, selector) {
   stopifnot(isTruthyChr(json), isTruthyChr(selector))
@@ -249,11 +249,11 @@ handleTrailingColon <- function(json, selector) {
   arr.len <- length(splitOnUnclosedChar(arr.atoms, ',')) - 1L
   # construct a complete array indexer
   xolon.key <- paste0(substr(colon.key, 1, nchar(colon.key) - 1L),
-                      as.character(arr.len), 
+                      as.character(arr.len),
                       ']')
   # swap original key 4 xolon.key
   glued <- sub(colon.key, xolon.key, selector, fixed=TRUE)
-  
+
   # check 4 remainders
   clued <- sapply(glued, function(gk) {
     if (grepl('\\[\\d+\\:\\]', gk, perl=TRUE)) {
@@ -271,7 +271,7 @@ handleTrailingColon <- function(json, selector) {
 #' @param json JSON string.
 #' @param selector Object selector/path containing the wildcard character.
 #' @return Chr vector.
-#' 
+#'
 #' @internal
 handleWildCard <- function(json, selector) {
   stopifnot(isTruthyChr(json), isTruthyChr(selector))
@@ -289,21 +289,21 @@ handleWildCard <- function(json, selector) {
     ''
   }
   # object context where to look for wildcard matches
-  obj.ctx <- gsub('(?:^\\{|^\\[)|(?:\\}$|\\]$)', '', 
-                  if (!pre %in% c('', '.')) jsonmatch(json, pre) else json, 
+  obj.ctx <- gsub('(?:^\\{|^\\[)|(?:\\}$|\\]$)', '',
+                  if (!pre %in% c('', '.')) jsonmatch(json, pre) else json,
                   perl=TRUE)
   # make regex from wdcd.key expression
-  rex.mtch.keys <- paste0('(?:"', sub('\\*', '[[:alnum:]]+', 
-                                      sub('^\\.', '', wdcd.key, perl=TRUE), 
-                                      perl=TRUE), 
+  rex.mtch.keys <- paste0('(?:"', sub('\\*', '[[:alnum:]]+',
+                                      sub('^\\.', '', wdcd.key, perl=TRUE),
+                                      perl=TRUE),
                           '"\\:)(?![^\\{]*\\})(?![^\\[]*\\])')  # keys on top level only
   # get all matching keys
-  mtch.keys <- paste0('.', 
-                      gsub('["\\:]', '', 
-                           regmatches(obj.ctx, 
-                                      gregexpr(rex.mtch.keys, 
-                                               obj.ctx, 
-                                               perl=TRUE))[[1]],
+  mtch.keys <- paste0('.',
+                      gsub('["\\:]', '',
+                           regmatches(obj.ctx,
+                                      gregexpr(rex.mtch.keys,
+                                               obj.ctx,
+                                               perl=TRUE))[[1L]],
                            perl=TRUE))
   # glue things back together
   glued <- sapply(mtch.keys, function(mk) sub(wdcd.key, mk, selector, fixed=TRUE),
@@ -322,17 +322,17 @@ handleWildCard <- function(json, selector) {
 
 #' Takes a split vector of dirty object keys and array indices and returns
 #'  a 2d list providing references as required by \code{extractValueFrom*}.
-#' 
+#'
 #' @param paths Character vector of jsonmatch-type key references.
 #' @return 2d list providing symbols as required by \code{extractValueFrom*}.
-#' 
+#'
 #' @internal
 getKeysFromPaths <- function(paths) {
   stopifnot(is.character(paths))
   # split paths to path components
-  comps <- strsplit(paths, 
-                    paste0('(?<=\\])(?=\\[)|(?<=[[:print:]])(?=\\[)|', 
-                           '(?<=\\])(?=\\.)|(?<=[[:print:]])(?=\\.)'), 
+  comps <- strsplit(paths,
+                    paste0('(?<=\\])(?=\\[)|(?<=[[:print:]])(?=\\[)|',
+                           '(?<=\\])(?=\\.)|(?<=[[:print:]])(?=\\.)'),
                     perl=TRUE)
   # strip dots and \\s
   nodots <- lapply(comps, function(comp) {
@@ -342,13 +342,13 @@ getKeysFromPaths <- function(paths) {
   # make a 2D list of chr obj keys and numeric indices
   subseq <- lapply(nodots, function(nd) {
     lapply(nd, function(d) {
-      if (grepl('^\\[\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*\\]$', 
-                d, 
+      if (grepl('^\\[\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*\\]$',
+                d,
                 perl=TRUE)) {
         # parse in integers
-        eval(parse(text=sub('^\\[(\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*)\\]$', 
-                            'c(\\1)', 
-                            d, 
+        eval(parse(text=sub('^\\[(\\d+(?:,\\d+)*(?:\\:(?!\\:)(?:\\d+)?)*)\\]$',
+                            'c(\\1)',
+                            d,
                             perl=TRUE)))
       } else {
         d
@@ -385,7 +385,7 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
 #' @param obj JSON object.
 #' @param key Key for which to retrieve value.
 #' @return Character vector.
-#' 
+#'
 #' @internal
 extractValueFromObjKey <- function(obj, key) {
   stopifnot(isTruthyChr(obj), isTruthyChr(key),
@@ -418,20 +418,20 @@ packStruct <- function(accu, json, paths) {
   i <- vector('integer')
   if (length(accu) > 1L) {
     if (isArray(json)) {          # base array
-      rtn <- paste0('[', 
-                    paste0(sapply(accu, boxjson::boxAtoms, USE.NAMES=FALSE), 
-                           collapse=','), 
+      rtn <- paste0('[',
+                    paste0(sapply(accu, boxjson::boxAtoms, USE.NAMES=FALSE),
+                           collapse=','),
                     ']')
     } else if (isObject(json)) {  # base object
       i <- 0L
       keys <- sub('^\\.', '', paths, perl=TRUE)
-      rtn <- paste0('{', 
+      rtn <- paste0('{',
                     paste0(sapply(accu, function(a) {
                       i <<- i + 1L
-                      paste0(paste0('"', keys[i], '"', ':'), 
+                      paste0(paste0('"', keys[i], '"', ':'),
                              boxjson::boxAtoms(a))
-                    }, USE.NAMES=FALSE), 
-                    collapse=','), 
+                    }, USE.NAMES=FALSE),
+                    collapse=','),
                     '}')
     }
   } else if (length(accu) == 1L) {
