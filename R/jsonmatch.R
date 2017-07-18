@@ -1,6 +1,7 @@
 # jsonmatch
 
-# TODO: -fix boxing of array siblings - DONE
+# TODO: -vectorize things for colon and wildcard matching - PENDING
+#       -fix boxing of array siblings - DONE
 #       -update code with new utils - DONE
 #       -jsonlite::validate input JSON - DONE
 #       -adjust verifyPatternSyntax for messages - DONE
@@ -20,16 +21,16 @@
 #       -write a cli 4 jsonmatch
 
 #' Simple matching on JSON
-#' 
+#'
 #' Subset JSON without parsing it to its equivalent R representation.
-#' 
-#' @details Parameter \code{pattern} allows matching keys of a JSON 
+#'
+#' @details Parameter \code{pattern} allows matching keys of a JSON
 #' object \code{.key}, and keys/indices of a JSON array \code{[0,3,5] or [0:5]}.
 #' ...
-#' 
+#'
 #' @export
 jsonmatch <- function(json, pattern, auto_unbox=FALSE, strict=TRUE) {
-  stopifnot(isTruthyChr(json), isTruthyChr(pattern), 
+  stopifnot(isTruthyChr(json), isTruthyChr(pattern),
             is.logical(auto_unbox), is.logical(strict))
   # mutate json for safe processing
   json <- mutateInputJSON(json)

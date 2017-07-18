@@ -435,7 +435,7 @@ packStruct <- function(accu, json, paths) {
                     '}')
     }
   } else if (length(accu) == 1L) {
-    rtn <- boxjson::boxAtoms(accu)
+    rtn <- boxjson::boxAtoms(accu, strict=FALSE)
   }
   # serve
   return(rtn)
