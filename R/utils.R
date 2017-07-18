@@ -404,6 +404,43 @@ extractValueFromObjKey <- function(obj, key) {
   stop('invalid JSON')
 }
 
+#' Does a string contain a character neither enclosed in brackets nor
+#' double quotes?
+#'
+#' @param string Character vector of length 1L.
+#' @param character Single character to search for.
+#' @return Logical.
+#'
+#' @keywords internal
+hasUnclosedChar <- function(string, char) {
+  stopifnot(is.character(string), is.character(char), nchar(char) == 1L)
+  # split to single characters
+  chars <- strsplit(string, '')[[1L]]
+  # setup
+  opbr <- 0L        # if opbr is zero we r not in a struct
+  opqt <- 2L        # counts double quotes
+  nsqt <- list(2L)  # counts nested double quotes
+  # peep through
+  for (i in seq_along(chars)) {
+    if (chars[i] %in% c('[', '{')) opbr <- opbr + 1L
+    if (chars[i] %in% c(']', '}')) opbr <- opbr - 1L
+    if (chars[i] == '"') opqt <- opqt + 1L
+    if (grepl('\\\\+', chars[i], perl=TRUE) && chars[i + 1L] == '"') {
+      if (!chars[i] %in% names(nsqt)) {
+        nsqt[[chars[i]]] <- 2L + 1L
+      } else if (chars[i] %in% names(nsqt)) {
+        nsqt[[chars[i]]] <- nsqt[[chars[i]]] + 1L
+      }
+    }
+    if (chars[i] == char &&
+        (opbr == 0L && opqt %% 2L == 0L  &&
+         all(unlist(nsqt) %% 2L == 0L))) {
+      return(TRUE)
+    }
+  }
+  return(FALSE)
+}
+
 #' Packs atomic data in arrays, optionally adding keys
 #'
 #' @param accu Character vector of target values (JSON extracts).

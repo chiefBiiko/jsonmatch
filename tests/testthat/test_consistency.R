@@ -79,6 +79,8 @@ testthat::test_that('return matches explicit pattern', {
   testthat::expect_error(jsonmatch('[0,1,0,1,0,1,1,0,1,0', '[0:7]'))
 
   # vectorized
+  testthat::expect_identical(jsonmatch(some.json, '[0:]'),
+                             some.json)
   testthat::expect_identical(jsonmatch(some.json, '[0:].gang'),
                              structure('[["almans"],["haji","419"]]',
                                        class='json'))
