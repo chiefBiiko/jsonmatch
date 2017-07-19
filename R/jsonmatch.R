@@ -24,6 +24,12 @@
 #'
 #' Subset JSON without parsing it to its equivalent R representation.
 #'
+#' @param json \code{JSON} string or filename.
+#' @param pattern Character. Subset pattern.
+#' @param auto_unbox Logical. Unbox \code{JSON}?; default: \code{FALSE}.
+#' @param strict Logical. Only allow valid \code{JSON}; default: \code{TRUE}.
+#' @return JSON string.
+#'
 #' @details Parameter \code{pattern} allows matching keys of a JSON
 #' object \code{.key,.k*y}, and keys/indices of a JSON array
 #' \code{[0,3,5], [0:5], [0:]}.

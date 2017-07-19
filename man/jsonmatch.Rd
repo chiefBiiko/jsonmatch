@@ -6,6 +6,18 @@
 \usage{
 jsonmatch(json, pattern, auto_unbox = FALSE, strict = TRUE)
 }
+\arguments{
+\item{json}{\code{JSON} string or filename.}
+
+\item{pattern}{Character. Subset pattern.}
+
+\item{auto_unbox}{Logical. Unbox \code{JSON}?; default: \code{FALSE}.}
+
+\item{strict}{Logical. Only allow valid \code{JSON}; default: \code{TRUE}.}
+}
+\value{
+JSON string.
+}
 \description{
 Subset JSON without parsing it to its equivalent R representation.
 }
