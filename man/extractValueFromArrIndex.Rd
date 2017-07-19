@@ -18,4 +18,3 @@ Character vector.
 Extracts the item at given index of an JSON array
 }
 \keyword{internal}
-

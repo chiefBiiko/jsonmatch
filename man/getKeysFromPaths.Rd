@@ -18,4 +18,3 @@ Takes a split vector of dirty object keys and array indices and returns
  a 2d list providing references as required by \code{extractValueFrom*}.
 }
 \keyword{internal}
-

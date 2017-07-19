@@ -20,4 +20,3 @@ Splits a string on given character neither enclosed in brackets nor
 double quotes
 }
 \keyword{internal}
-

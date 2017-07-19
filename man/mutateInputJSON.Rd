@@ -16,4 +16,3 @@ JSON string.
 Mutates input JSON for safe processing
 }
 \keyword{internal}
-

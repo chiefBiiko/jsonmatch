@@ -18,4 +18,3 @@ Chr vector.
 Returns a chr vector of wildcard matched object keys
 }
 \keyword{internal}
-

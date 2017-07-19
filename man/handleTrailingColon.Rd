@@ -18,4 +18,3 @@ Chr vector.
 Fixes a trailing colon in array selectors
 }
 \keyword{internal}
-

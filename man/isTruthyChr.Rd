@@ -16,4 +16,3 @@ Logical.
 Is character vector with number of characters >= 1?
 }
 \keyword{internal}
-

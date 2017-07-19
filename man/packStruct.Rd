@@ -20,4 +20,3 @@ Character vector.
 Packs atomic data in arrays, optionally adding keys
 }
 \keyword{internal}
-

@@ -16,4 +16,3 @@ Stripped JSON object.
 Strips an object's outer brackets
 }
 \keyword{internal}
-

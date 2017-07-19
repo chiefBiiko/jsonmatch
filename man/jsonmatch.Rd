@@ -7,13 +7,13 @@
 jsonmatch(json, pattern, auto_unbox = FALSE, strict = TRUE)
 }
 \arguments{
-\item{json}{\code{JSON} string or filename.}
+\item{json}{Character. In-memory \code{JSON} string or filename.}
 
 \item{pattern}{Character. Subset pattern.}
 
-\item{auto_unbox}{Logical. Unbox \code{JSON}?; default: \code{FALSE}.}
+\item{auto_unbox}{Logical. Unbox \code{JSON}? Default: \code{FALSE}.}
 
-\item{strict}{Logical. Only allow valid \code{JSON}; default: \code{TRUE}.}
+\item{strict}{Logical. Only allow valid \code{JSON}? Default: \code{TRUE}.}
 }
 \value{
 JSON string.
@@ -27,4 +27,3 @@ object \code{.key,.k*y}, and keys/indices of a JSON array
 \code{[0,3,5], [0:5], [0:]}.
 ...
 }
-

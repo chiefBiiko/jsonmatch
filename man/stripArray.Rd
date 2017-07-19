@@ -16,4 +16,3 @@ Stripped JSON array.
 Strips an array's outer brackets
 }
 \keyword{internal}
-

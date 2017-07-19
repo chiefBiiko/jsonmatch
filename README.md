@@ -21,19 +21,29 @@ devtools::install_github('chiefBiiko/jsonmatch')
 Usage
 -----
 
+`jsonmatch::jsonmatch` has four parameters:
+
+-   `json` In-memory `JSON` string or filename.
+-   `pattern` Character. Subset pattern.
+-   `auto_unbox` Logical. Unbox `JSON`? Default: `FALSE`.
+-   `strict` Logical. Only allow valid `JSON`? Default: `TRUE`.
+
+The subset pattern allows matching keys of `JSON` arrays and objects. It must follow a simple syntax. Its rules are as follows:
+
+-   Array values are referenced via their index (zero-based): `[0] or [2:] or [2:3]`
+-   Object values are referenced via their key: `.key or .k*y or .*y or .k* or .*`
+
 ``` r
 # some JSON
-some.json <- jsonlite::toJSON(list(list(name='herman', 
-                                        gang='almans'), 
-                                   list(name='fraudster', 
-                                        gang=c('haji', '419'))))
+some.json <- jsonlite::toJSON(list(list(name='herman', gang='almans'), 
+                                   list(name='habibo', gang=c('haji', '419'))))
 
 # peek at it
 cat('some JSON:\n', some.json, sep='')
 ```
 
     some JSON:
-    [{"name":["herman"],"gang":["almans"]},{"name":["fraudster"],"gang":["haji","419"]}]
+    [{"name":["herman"],"gang":["almans"]},{"name":["habibo"],"gang":["haji","419"]}]
 
 ``` r
 # who u with

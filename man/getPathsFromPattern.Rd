@@ -18,4 +18,3 @@ Chr vector.
 Splits pattern to paths while handling the wildcard
 }
 \keyword{internal}
-

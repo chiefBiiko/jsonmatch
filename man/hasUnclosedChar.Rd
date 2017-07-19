@@ -20,4 +20,3 @@ Does a string contain a character neither enclosed in brackets nor
 double quotes?
 }
 \keyword{internal}
-

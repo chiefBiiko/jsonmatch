@@ -18,4 +18,3 @@ Logical indicating whether the syntax is correct.
 Performs a syntax check on pattern
 }
 \keyword{internal}
-

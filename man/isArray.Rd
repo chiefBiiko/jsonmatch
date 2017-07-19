@@ -16,4 +16,3 @@ Logical.
 Is JSON an array?
 }
 \keyword{internal}
-
