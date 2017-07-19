@@ -1,7 +1,7 @@
 jsonmatch
 ================
 
-[![Travis-CI Build Status](https://travis-ci.org/chiefBiiko/jsonmatch.svg?branch=master)](https://travis-ci.org/chiefBiiko/jsonmatch) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/chiefBiiko/jsonmatch?branch=master&svg=true)](https://ci.appveyor.com/project/chiefBiiko/jsonmatch)
+[![Travis-CI Build Status](https://travis-ci.org/chiefBiiko/jsonmatch.svg?branch=master)](https://travis-ci.org/chiefBiiko/jsonmatch) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/chiefBiiko/jsonmatch?branch=master&svg=true)](https://ci.appveyor.com/project/chiefBiiko/jsonmatch) [![Coverage Status](https://codecov.io/gh/chiefBiiko/jsonmatch/branch/master/graph/badge.svg)](https://codecov.io/gh/chiefBiiko/jsonmatch)
 
 ------------------------------------------------------------------------
 
