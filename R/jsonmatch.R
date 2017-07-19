@@ -1,6 +1,6 @@
 # jsonmatch
 
-# TODO: -vectorize things for colon and wildcard matching - PENDING
+# TODO: -vectorize things for colon and wildcard matching - DONE
 #       -fix boxing of array siblings - DONE
 #       -update code with new utils - DONE
 #       -jsonlite::validate input JSON - DONE
@@ -25,7 +25,8 @@
 #' Subset JSON without parsing it to its equivalent R representation.
 #'
 #' @details Parameter \code{pattern} allows matching keys of a JSON
-#' object \code{.key}, and keys/indices of a JSON array \code{[0,3,5] or [0:5]}.
+#' object \code{.key,.k*y}, and keys/indices of a JSON array
+#' \code{[0,3,5], [0:5], [0:]}.
 #' ...
 #'
 #' @export

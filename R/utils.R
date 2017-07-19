@@ -5,7 +5,7 @@
 #' @param x R object.
 #' @return Logical.
 #'
-#' @internal
+#' @keywords internal
 isTruthyChr <- function(x) {
   if (is.character(x) && nchar(x) > 0L) {
     return(TRUE)
@@ -19,7 +19,7 @@ isTruthyChr <- function(x) {
 #' @param json JSON string.
 #' @return Logical.
 #'
-#' @internal
+#' @keywords internal
 isArray <- function(json) {
   stopifnot(isTruthyChr(json))
   return(grepl('^\\[.+\\]$', json, perl=TRUE))
@@ -30,7 +30,7 @@ isArray <- function(json) {
 #' @param json JSON string.
 #' @return Logical.
 #'
-#' @internal
+#' @keywords internal
 isObject <- function(json) {
   stopifnot(isTruthyChr(json))
   return(grepl('^\\{.+\\}$', json, perl=TRUE))
@@ -41,7 +41,7 @@ isObject <- function(json) {
 #' @param json JSON array.
 #' @return Stripped JSON array.
 #'
-#' @internal
+#' @keywords internal
 stripArray <- function(json) {
   stopifnot(isTruthyChr(json))
   if (isArray(json)) {
@@ -56,7 +56,7 @@ stripArray <- function(json) {
 #' @param json JSON object.
 #' @return Stripped JSON object.
 #'
-#' @internal
+#' @keywords internal
 stripObject <- function(json) {
   stopifnot(isTruthyChr(json))
   if (isObject(json)) {
@@ -71,7 +71,7 @@ stripObject <- function(json) {
 #' @param json Input JSON.
 #' @return JSON string.
 #'
-#' @internal
+#' @keywords internal
 mutateInputJSON <- function(json) {
   stopifnot(isTruthyChr(json))
   # allow file references
@@ -94,7 +94,7 @@ mutateInputJSON <- function(json) {
 #' @param character Single character to split on.
 #' @return Chr vector.
 #'
-#' @internal
+#' @keywords internal
 splitOnUnclosedChar <- function(string, char, keep=FALSE) {
   stopifnot(is.character(string), is.character(char), nchar(char) == 1L,
             is.logical(keep))
@@ -146,7 +146,7 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
 #' @param pattern Chr vector of length 1 specifying the subset pattern.
 #' @return Logical indicating whether the syntax is correct.
 #'
-#' @internal
+#' @keywords internal
 verifyPatternSyntax <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
   # root structure
@@ -204,12 +204,12 @@ verifyPatternSyntax <- function(json, pattern) {
 #' @param pattern Subset pattern.
 #' @return Chr vector.
 #'
-#' @internal
+#' @keywords internal
 getPathsFromPattern <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
   # selectors split
   selectors <- Filter(function(p) p != '',
-                      strsplit(pattern, ',', fixed=TRUE)[[1]])
+                      strsplit(pattern, ',', fixed=TRUE)[[1L]])
   # make a flat vector
   rtn <- unlist(lapply(selectors, function(s) {
     if (grepl('\\*', s, perl=TRUE)) {  # GET ALL *matches in a vector
@@ -220,6 +220,20 @@ getPathsFromPattern <- function(json, pattern) {
       s
     }
   }))
+  # split 4 multiple array indices                      # NEW NEW
+  if (any(grepl('\\[\\d+\\:\\d+\\][^\\s]+', rtn, perl=TRUE))) {
+    rtn <- as.vector(sapply(as.list(rtn), function(trail) {
+      if (grepl('\\[\\d+\\:\\d+\\]', trail, perl=TRUE)) {
+        parsed.seq <- eval(parse(text=sub('^[^\\[]*\\[(\\d+\\:\\d+)\\].*$',
+                                          '\\1', trail, perl=TRUE)))
+        sapply(as.list(parsed.seq), function(digit) {
+          sub('\\[\\d+\\:\\d+\\]', paste0('[', digit, ']'), trail, perl=TRUE)
+        })
+      } else {
+        trail
+      }
+    }), mode='character')
+  }
   # serve
   return(rtn)
 }
@@ -230,7 +244,7 @@ getPathsFromPattern <- function(json, pattern) {
 #' @param selector Object selector/path containing a trailing colon.
 #' @return Chr vector.
 #'
-#' @internal
+#' @keywords internal
 handleTrailingColon <- function(json, selector) {
   stopifnot(isTruthyChr(json), isTruthyChr(selector))
   # regex 2 match the trailing colon part of the selector
@@ -253,7 +267,6 @@ handleTrailingColon <- function(json, selector) {
                       ']')
   # swap original key 4 xolon.key
   glued <- sub(colon.key, xolon.key, selector, fixed=TRUE)
-
   # check 4 remainders
   clued <- sapply(glued, function(gk) {
     if (grepl('\\[\\d+\\:\\]', gk, perl=TRUE)) {
@@ -272,7 +285,7 @@ handleTrailingColon <- function(json, selector) {
 #' @param selector Object selector/path containing the wildcard character.
 #' @return Chr vector.
 #'
-#' @internal
+#' @keywords internal
 handleWildCard <- function(json, selector) {
   stopifnot(isTruthyChr(json), isTruthyChr(selector))
   # regex 2 match the wildcard part of the selector
@@ -326,7 +339,7 @@ handleWildCard <- function(json, selector) {
 #' @param paths Character vector of jsonmatch-type key references.
 #' @return 2d list providing symbols as required by \code{extractValueFrom*}.
 #'
-#' @internal
+#' @keywords internal
 getKeysFromPaths <- function(paths) {
   stopifnot(is.character(paths))
   # split paths to path components
@@ -365,7 +378,7 @@ getKeysFromPaths <- function(paths) {
 #' @param index Array index/key for which to retrieve value, zero-indexed.
 #' @return Character vector.
 #'
-#' @internal
+#' @keywords internal
 extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
   stopifnot(isTruthyChr(arr), is.numeric(index), index %% 1L == 0L)
   # split arr contents on comma not enclosed in [], {} or ""
@@ -386,7 +399,7 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
 #' @param key Key for which to retrieve value.
 #' @return Character vector.
 #'
-#' @internal
+#' @keywords internal
 extractValueFromObjKey <- function(obj, key) {
   stopifnot(isTruthyChr(obj), isTruthyChr(key),
             grepl(paste0('"', key,'"\\:'), obj, perl=TRUE))
@@ -448,7 +461,7 @@ hasUnclosedChar <- function(string, char) {
 #' @param paths Subset pattern paths.
 #' @return Character vector.
 #'
-#' @internal
+#' @keywords internal
 packStruct <- function(accu, json, paths) {
   stopifnot(is.character(accu), isTruthyChr(json), isTruthyChr(paths))
   rtn <- keys <- vector('character')
