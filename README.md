@@ -21,17 +21,20 @@ devtools::install_github('chiefBiiko/jsonmatch')
 Usage
 -----
 
-`jsonmatch::jsonmatch` has four parameters:
+`jsonmatch::jsonmatch(json, pattern, auto_unbox=FALSE, strict=TRUE)`
 
--   `json` In-memory `JSON` string or filename.
--   `pattern` Character. Subset pattern.
--   `auto_unbox` Logical. Unbox `JSON`? Default: `FALSE`.
--   `strict` Logical. Only allow valid `JSON`? Default: `TRUE`.
+-   `json` Character. In-memory `JSON` string or filename. **required**
+-   `pattern` Character. Subset pattern. **required**
+-   `auto_unbox` Logical. Unbox `JSON`? Default: `FALSE`. **optional**
+-   `strict` Logical. Only allow valid `JSON`? Default: `TRUE`. **optional**
 
-The subset pattern allows matching keys of `JSON` arrays and objects. It must follow a simple syntax. Its rules are as follows:
+`pattern` allows matching keys of `JSON` arrays and objects. Its syntax rules are as follows:
 
--   Array values are referenced via their index (zero-based): `[0] or [2:] or [2:3]`
--   Object values are referenced via their key: `.key or .k*y or .*y or .k* or .*`
+-   Array values are referenced via their index (zero-based): `[0]` or `[2:]` or `[2:3]`
+-   Object values are referenced via their key: `.key` or `.k*y` or `.*y` or `.k*` or `.*`
+-   Multiple *subset paths* are separated by a comma: `.keyA[0],.keyB[0]`
+
+For the rationale of `auto_unbox` check out [`boxjson`](https://github.com/chiefBiiko/boxjson). If `strict` is `TRUE` and `jsonlite::validate(json)` evaluates to `FALSE` an error is thrown.
 
 ``` r
 # some JSON
