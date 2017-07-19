@@ -1,17 +1,13 @@
 Package: jsonmatch
 Title: Match JSON
 Version: 0.0.0.9000
-Authors@R: person("Noah", "Schwarz", email = "noah.anabiik.schwarz@gmail.com", role = c("aut", "cre"))
+Authors@R: person("Noah Anabiik", "Schwarz", email = "noah.anabiik.schwarz@gmail.com", role = c("aut", "cre"))
 Description: Subset JSON via simple key matching.
-Imports:
-    boxjson,
-    jsonlite
+Imports: boxjson, jsonlite
 Remotes: github::chiefBiiko/boxjson
-Depends:
-    R (>= 3.3.2)
+Depends: R (>= 3.0.0)
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Suggests:
-    testthat
+Suggests: testthat, compiler, covr
 RoxygenNote: 5.0.1
