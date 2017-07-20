@@ -28,7 +28,7 @@ Usage
 -   `auto_unbox` Logical. Unbox `JSON`? Default: `FALSE`. **optional**
 -   `strict` Logical. Only allow valid `JSON`? Default: `TRUE`. **optional**
 
-`pattern` allows matching keys of `JSON` arrays and objects. Its syntax rules are as follows:
+`pattern` allows matching keys of `JSON` arrays and objects. Its syntax rules are simple:
 
 -   Array values are referenced via their index (zero-based): `[0]` or `[2:]` or `[2:3]`
 -   Object values are referenced via their key: `.key` or `.k*y` or `.*y` or `.k*` or `.*`
