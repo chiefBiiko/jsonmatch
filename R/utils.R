@@ -6,7 +6,7 @@
 #' @return Logical.
 #'
 #' @keywords internal
-isTruthyChr <- function(x) {
+isTruthyChrVec <- function(x) {
   if (is.character(x) && nchar(x) > 0L) {
     return(TRUE)
   } else {
@@ -21,7 +21,7 @@ isTruthyChr <- function(x) {
 #'
 #' @keywords internal
 isArray <- function(json) {
-  stopifnot(isTruthyChr(json))
+  stopifnot(isTruthyChrVec(json))
   return(grepl('^\\[.+\\]$', json, perl=TRUE))
 }
 
@@ -32,7 +32,7 @@ isArray <- function(json) {
 #'
 #' @keywords internal
 isObject <- function(json) {
-  stopifnot(isTruthyChr(json))
+  stopifnot(isTruthyChrVec(json))
   return(grepl('^\\{.+\\}$', json, perl=TRUE))
 }
 
@@ -43,7 +43,7 @@ isObject <- function(json) {
 #'
 #' @keywords internal
 stripArray <- function(json) {
-  stopifnot(isTruthyChr(json))
+  stopifnot(isTruthyChrVec(json))
   if (isArray(json)) {
     return(gsub('^\\[|\\]$', '', json, perl=TRUE))
   } else {
@@ -58,7 +58,7 @@ stripArray <- function(json) {
 #'
 #' @keywords internal
 stripObject <- function(json) {
-  stopifnot(isTruthyChr(json))
+  stopifnot(isTruthyChrVec(json))
   if (isObject(json)) {
     return(gsub('^\\{|\\}$', '', json, perl=TRUE))
   } else {
@@ -73,7 +73,7 @@ stripObject <- function(json) {
 #'
 #' @keywords internal
 mutateInputJSON <- function(json) {
-  stopifnot(isTruthyChr(json))
+  stopifnot(isTruthyChrVec(json))
   # allow file references
   if (file.exists(json)) {
     json <- gsub('\\s+(?=(?:(?:[^"]*"){2})*[^"]*$)', '',
@@ -148,7 +148,7 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
 #'
 #' @keywords internal
 verifyPatternSyntax <- function(json, pattern) {
-  stopifnot(isTruthyChr(json), isTruthyChr(pattern))
+  stopifnot(isTruthyChrVec(json), isTruthyChrVec(pattern))
   # root structure
   struct <- if (isArray(json)) {  # case arr
     identical(strsplit(pattern, '', fixed=TRUE)[[1L]][1L], '[')
@@ -206,7 +206,7 @@ verifyPatternSyntax <- function(json, pattern) {
 #'
 #' @keywords internal
 getPathsFromPattern <- function(json, pattern) {
-  stopifnot(isTruthyChr(json), isTruthyChr(pattern))
+  stopifnot(isTruthyChrVec(json), isTruthyChrVec(pattern))
   # selectors split
   selectors <- Filter(function(p) p != '',
                       strsplit(pattern, ',', fixed=TRUE)[[1L]])
@@ -246,7 +246,7 @@ getPathsFromPattern <- function(json, pattern) {
 #'
 #' @keywords internal
 handleTrailingColon <- function(json, selector) {
-  stopifnot(isTruthyChr(json), isTruthyChr(selector))
+  stopifnot(isTruthyChrVec(json), isTruthyChrVec(selector))
   # regex 2 match the trailing colon part of the selector
   rex.colon.key <- '\\[\\d+\\:\\]'
   # extract the trailing colon part of the selector
@@ -287,7 +287,7 @@ handleTrailingColon <- function(json, selector) {
 #'
 #' @keywords internal
 handleWildCard <- function(json, selector) {
-  stopifnot(isTruthyChr(json), isTruthyChr(selector))
+  stopifnot(isTruthyChrVec(json), isTruthyChrVec(selector))
   # regex 2 match the wildcard part of the selector
   rex.wdcd.key <- paste0('\\.[[:alnum:]]+\\*[[:alnum:]]+|',  # <- this case 1st
                          '\\.[[:alnum:]]+\\*|',
@@ -380,7 +380,7 @@ getKeysFromPaths <- function(paths) {
 #'
 #' @keywords internal
 extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
-  stopifnot(isTruthyChr(arr), is.numeric(index), index %% 1L == 0L)
+  stopifnot(isTruthyChrVec(arr), is.numeric(index), index %% 1L == 0L)
   # split arr contents on comma not enclosed in [], {} or ""
   cospl <- splitOnUnclosedChar(stripArray(arr), ',')
   # get atoms out of array
@@ -401,7 +401,7 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
 #'
 #' @keywords internal
 extractValueFromObjKey <- function(obj, key) {
-  stopifnot(isTruthyChr(obj), isTruthyChr(key),
+  stopifnot(isTruthyChrVec(obj), isTruthyChrVec(key),
             grepl(paste0('"', key,'"\\:'), obj, perl=TRUE))
   chars <- strsplit(obj, '', fixed=TRUE)[[1L]]
   beg <- pos <- regexpr(paste0('"', key,'":'), obj)[1L] + nchar(key) + 3L
@@ -463,7 +463,7 @@ hasUnclosedChar <- function(string, char) {
 #'
 #' @keywords internal
 packStruct <- function(accu, json, paths) {
-  stopifnot(is.character(accu), isTruthyChr(json), isTruthyChr(paths))
+  stopifnot(is.character(accu), isTruthyChrVec(json), isTruthyChrVec(paths))
   rtn <- keys <- vector('character')
   i <- vector('integer')
   if (length(accu) > 1L) {

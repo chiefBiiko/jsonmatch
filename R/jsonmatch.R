@@ -37,7 +37,7 @@
 #'
 #' @export
 jsonmatch <- function(json, pattern, auto_unbox=FALSE, strict=TRUE) {
-  stopifnot(isTruthyChr(json), isTruthyChr(pattern),
+  stopifnot(isTruthyChrVec(json), isTruthyChrVec(pattern),
             is.logical(auto_unbox), is.logical(strict))
   # mutate json for safe processing
   json <- mutateInputJSON(json)
