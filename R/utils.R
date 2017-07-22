@@ -99,7 +99,7 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
   stopifnot(is.character(string), is.character(char), nchar(char) == 1L,
             is.logical(keep))
   # split to single characters
-  chars <- strsplit(string, '', fixed=TRUE)[[1]]
+  chars <- strsplit(string, '', fixed=TRUE)[[1L]]
   # setup
   opbr <- 0L        # if opbr is zero we r not in a struct
   opqt <- 2L        # counts double quotes
@@ -151,9 +151,9 @@ verifyPatternSyntax <- function(json, pattern) {
   stopifnot(isTruthyChr(json), isTruthyChr(pattern))
   # root structure
   struct <- if (isArray(json)) {  # case arr
-    strsplit(pattern, '', fixed=TRUE)[[1]][1] == '['
+    identical(strsplit(pattern, '', fixed=TRUE)[[1L]][1L], '[')
   } else if (isObject(json)) {     # case obj
-    strsplit(pattern, '', fixed=TRUE)[[1]][1] == '.'
+    identical(strsplit(pattern, '', fixed=TRUE)[[1L]][1L], '.')
   }
   # check 4 invalid characters ...
   valid <- !grepl('[^[[:print:]]]*', pattern, perl=TRUE)  # chr class locked
@@ -252,8 +252,8 @@ handleTrailingColon <- function(json, selector) {
   # extract the trailing colon part of the selector
   colon.key <- regmatches(selector, regexpr(rex.colon.key, selector, perl=TRUE))
   # get prefix of colon indexer
-  pre <- if ((pos <- regexpr(colon.key, selector, fixed=TRUE)[1]) > 1L) {
-    substr(selector, 1, pos - 1L)
+  pre <- if ((pos <- regexpr(colon.key, selector, fixed=TRUE)[1L]) > 1L) {
+    substr(selector, 1L, pos - 1L)
   } else {
     ''
   }
@@ -262,7 +262,7 @@ handleTrailingColon <- function(json, selector) {
   # get the array length - with base zero
   arr.len <- length(splitOnUnclosedChar(arr.atoms, ',')) - 1L
   # construct a complete array indexer
-  xolon.key <- paste0(substr(colon.key, 1, nchar(colon.key) - 1L),
+  xolon.key <- paste0(substr(colon.key, 1L, nchar(colon.key) - 1L),
                       as.character(arr.len),
                       ']')
   # swap original key 4 xolon.key
@@ -297,7 +297,7 @@ handleWildCard <- function(json, selector) {
   wdcd.key <- regmatches(selector, regexpr(rex.wdcd.key, selector, perl=TRUE))
   # get prefix of wdcd.key
   pre <- if ((pos <- regexpr(wdcd.key, selector, fixed=TRUE)[1]) > 1L) {
-    substr(selector, 1, pos - 1L)
+    substr(selector, 1L, pos - 1L)
   } else {
     ''
   }
@@ -384,7 +384,7 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
   # split arr contents on comma not enclosed in [], {} or ""
   cospl <- splitOnUnclosedChar(stripArray(arr), ',')
   # get atoms out of array
-  arr.sub <- cospl[index + 1]
+  arr.sub <- cospl[index + 1L]
   # error out
   if (anyNA(arr.sub)) stop('index out of bounds')
   # collapse
@@ -403,8 +403,8 @@ extractValueFromArrIndex <- function(arr, index) {  # zero-indexed !!!
 extractValueFromObjKey <- function(obj, key) {
   stopifnot(isTruthyChr(obj), isTruthyChr(key),
             grepl(paste0('"', key,'"\\:'), obj, perl=TRUE))
-  chars <- strsplit(obj, '', fixed=TRUE)[[1]]
-  beg <- pos <- regexpr(paste0('"', key,'":'), obj)[1] + nchar(key) + 3L
+  chars <- strsplit(obj, '', fixed=TRUE)[[1L]]
+  beg <- pos <- regexpr(paste0('"', key,'":'), obj)[1L] + nchar(key) + 3L
   opbr <- 0L
   repeat {
     if (chars[pos] %in% c('[', '{')) opbr <- opbr + 1L

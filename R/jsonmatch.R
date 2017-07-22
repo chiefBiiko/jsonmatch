@@ -42,7 +42,7 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE, strict=TRUE) {
   # mutate json for safe processing
   json <- mutateInputJSON(json)
   # use strict
-##if (strict && !jsonlite::validate(json)) stop('invalid json')
+  if (strict && !jsonlite::validate(json)) stop('invalid json')
   # do a syntax check
   if (!(vps <- verifyPatternSyntax(json, pattern))) stop(attr(vps, 'msg'))
   # split pattern to paths
@@ -51,7 +51,7 @@ jsonmatch <- function(json, pattern, auto_unbox=FALSE, strict=TRUE) {
   keys <- getKeysFromPaths(paths)
   # extraduce target value(s)
   accu <- vector('character', length(keys))
-  for (i in seq(length(keys))) {
+  for (i in seq_along(keys)) {
     curr <- json                                     # reduction base
     for (key in keys[[i]]) {                         # reduce curr to target
       if (is.character(key)) {                       # object keys
