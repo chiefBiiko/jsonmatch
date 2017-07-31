@@ -30,9 +30,11 @@ Usage
 
 `pattern` allows matching keys of `JSON` arrays and objects. Its syntax rules are simple:
 
--   Array values are referenced via their index (zero-based): `[0]` or `[2:]` or `[2:3]`
+-   Array values are referenced via their index (zero-based): `[0]` or `[1,3]` or `[2:]` or `[2:3]`
 -   Object values are referenced via their key: `.key` or `.k*y` or `.*y` or `.k*` or `.*`
 -   Multiple *subset paths* are separated by a comma: `.keyA[0],.keyB[0]`
+
+Note that a colon within an array subset pattern is only valid if it is trailing, indicating to select all array elements with an index in the range of `[low:]` to `length(array) - 1` aka the end of the array. The wildcard character in an object subset pattern matches any alphanumeric character sequence. Wildcard matching cannot be used if object keys contain non-alphanumeric characters `[^[:alnum:]]`.
 
 For the rationale of `auto_unbox` check out [`boxjson`](https://github.com/chiefBiiko/boxjson). If `strict` is `TRUE` and `jsonlite::validate(json)` evaluates to `FALSE` an error is thrown.
 
