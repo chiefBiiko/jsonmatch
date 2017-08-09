@@ -3,7 +3,7 @@
 #'
 #' @param string character. Vector of length 1.
 #' @param peep character. Single character to search for. Cannot be any of
-#' \code{[]{}"}.
+#' \code{[]{}\"}.
 #' @return Logical.
 #'
 #' @keywords internal

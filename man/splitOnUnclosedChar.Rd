@@ -11,7 +11,7 @@ splitOnUnclosedChar(string, peep, keep = FALSE)
 \item{string}{character. Vector of length 1.}
 
 \item{peep}{character. Single character to split on. Cannot be any of
-\code{[]{}"}.}
+\code{[]{}\"}.}
 
 \item{keep}{logical. Keep \code{peep}?}
 }

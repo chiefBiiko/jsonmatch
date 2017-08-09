@@ -11,7 +11,7 @@ hasUnclosedChar(string, peep)
 \item{string}{character. Vector of length 1.}
 
 \item{peep}{character. Single character to search for. Cannot be any of
-\code{[]{}"}.}
+\code{[]{}\"}.}
 }
 \value{
 Logical.

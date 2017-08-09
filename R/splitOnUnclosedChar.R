@@ -3,7 +3,7 @@
 #'
 #' @param string character. Vector of length 1.
 #' @param peep character. Single character to split on. Cannot be any of
-#' \code{[]{}"}.
+#' \code{[]{}\"}.
 #' @param keep logical. Keep \code{peep}?
 #' @return character. Vector of splits.
 #'
