@@ -6,6 +6,20 @@
 #' @return Logical.
 #'
 #' @keywords internal
+isTruthyChr <- function(x) {
+  if (is.character(x) && length(x) == 1 && nchar(x) > 0L) {
+    return(TRUE)
+  } else {
+    return(FALSE)
+  }
+}
+
+#' Is multi-length character vector with number of characters >= 1?
+#'
+#' @param x R object.
+#' @return Logical.
+#'
+#' @keywords internal
 isTruthyChrVec <- function(x) {
   if (is.character(x) && nchar(x) > 0L) {
     return(TRUE)
@@ -14,27 +28,29 @@ isTruthyChrVec <- function(x) {
   }
 }
 
-#' Is JSON an array?
+#' Is JSON a (non-empty) array(-like)?
 #'
 #' @param json JSON string.
 #' @return Logical.
 #'
 #' @keywords internal
-isArray <- function(json) {
-  stopifnot(isTruthyChrVec(json))
-  return(grepl('^\\[.+\\]$', json, perl=TRUE))
-}
+isArray <- function(json) grepl('^\\[.+\\]$', json, perl=TRUE)
 
-#' Is JSON an object?
+#' Is JSON a (non-empty) object(-like)?
 #'
 #' @param json JSON string.
 #' @return Logical.
 #'
 #' @keywords internal
-isObject <- function(json) {
-  stopifnot(isTruthyChrVec(json))
-  return(grepl('^\\{.+\\}$', json, perl=TRUE))
-}
+isObject <- function(json) grepl('^\\{.+\\}$', json, perl=TRUE)
+
+#' Is JSON a (non-empty) array(-like) or object(-like)?
+#'
+#' @param json JSON string.
+#' @return Logical.
+#'
+#' @keywords internal
+isStruct <- function(json) isArray(json) || isObject(json)
 
 #' Strips an array's outer brackets
 #'
@@ -91,36 +107,28 @@ mutateInputJSON <- function(json) {
 #' double quotes
 #'
 #' @param string Character vector of length 1L.
-#' @param character Single character to split on.
-#' @return Chr vector.
+#' @param character Single character to split on. Cannot be any of
+#' \code{[]{}"}.
+#' @return character. Vector of splits.
 #'
 #' @keywords internal
 splitOnUnclosedChar <- function(string, char, keep=FALSE) {
-  stopifnot(is.character(string), is.character(char), nchar(char) == 1L,
+  stopifnot(isTruthyChr(string), isTruthyChr(char), nchar(char) == 1L,
             is.logical(keep))
   # split to single characters
   chars <- strsplit(string, '', fixed=TRUE)[[1L]]
   # setup
-  opbr <- 0L        # if opbr is zero we r not in a struct
-  opqt <- 2L        # counts double quotes
-  nsqt <- list(2L)  # counts nested double quotes
-  last.cut <- 0L    # tracks last slice index
+  opbr <- 0L      # if opbr is zero we r not in a struct
+  qtct <- 0L      # if even we r not in a string
+  last.cut <- 0L  # tracks last slice index
   accu <- vector('character')
-  # peep through
-  for (i in seq(length(chars))) {
+  prev <- chars[1L]
+  # peep through --- NEED 2 MAKE THIS ONE WORK LIKE THE OTHER !!!
+  for (i in seq_along(chars)) {
     if (chars[i] %in% c('[', '{')) opbr <- opbr + 1L
     if (chars[i] %in% c(']', '}')) opbr <- opbr - 1L
-    if (chars[i] == '"') opqt <- opqt + 1L
-    if (grepl('\\\\+', chars[i], perl=TRUE) && chars[i + 1L] == '"') {
-      if (!chars[i] %in% names(nsqt)) {
-        nsqt[[chars[i]]] <- 2L + 1L
-      } else if (chars[i] %in% names(nsqt)) {
-        nsqt[[chars[i]]] <- nsqt[[chars[i]]] + 1L
-      }
-    }
-    if (chars[i] == char &&
-        (opbr == 0L && opqt %% 2L == 0L  &&
-         all(unlist(nsqt) %% 2L == 0L))) {
+    if (chars[i] == '"' && prev != '\\') qtct <- qtct + 1L
+    if (chars[i] == char && (opbr == 0L && qtct %% 2L == 0L)) {
       if (!keep) {
         accu <- append(accu, substr(string, last.cut + 1L, i - 1L))
       } else {  # keep split character
@@ -132,6 +140,7 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
       }
       last.cut <- i
     }
+    prev <- chars[i]
   }
   # consume remainder
   if (last.cut < nchar(string))  {
@@ -140,6 +149,7 @@ splitOnUnclosedChar <- function(string, char, keep=FALSE) {
   # serve
   return(accu)
 }
+
 #' Performs a syntax check on pattern
 #'
 #' @param json JSON string.
@@ -420,36 +430,29 @@ extractValueFromObjKey <- function(obj, key) {
 #' Does a string contain a character neither enclosed in brackets nor
 #' double quotes?
 #'
-#' @param string Character vector of length 1L.
-#' @param character Single character to search for.
+#' @param string Character vector of length 1.
+#' @param character Single character to search for. Cannot be any of
+#' \code{[]{}"}.
 #' @return Logical.
 #'
 #' @keywords internal
 hasUnclosedChar <- function(string, char) {
-  stopifnot(is.character(string), is.character(char), nchar(char) == 1L)
+  stopifnot(isTruthyChr(string), isTruthyChr(char), nchar(char) == 1L)
   # split to single characters
   chars <- strsplit(string, '')[[1L]]
   # setup
-  opbr <- 0L        # if opbr is zero we r not in a struct
-  opqt <- 2L        # counts double quotes
-  nsqt <- list(2L)  # counts nested double quotes
-  # peep through
+  opbr <- 0L     # if opbr is zero we r not in a struct
+  qtct <- 0L     # if even we r not in a string
+  prev <- chars[1L]
+  # peep through --- THIS VERSION IS COOL
   for (i in seq_along(chars)) {
     if (chars[i] %in% c('[', '{')) opbr <- opbr + 1L
     if (chars[i] %in% c(']', '}')) opbr <- opbr - 1L
-    if (chars[i] == '"') opqt <- opqt + 1L
-    if (grepl('\\\\+', chars[i], perl=TRUE) && chars[i + 1L] == '"') {
-      if (!chars[i] %in% names(nsqt)) {
-        nsqt[[chars[i]]] <- 2L + 1L
-      } else if (chars[i] %in% names(nsqt)) {
-        nsqt[[chars[i]]] <- nsqt[[chars[i]]] + 1L
-      }
-    }
-    if (chars[i] == char &&
-        (opbr == 0L && opqt %% 2L == 0L  &&
-         all(unlist(nsqt) %% 2L == 0L))) {
+    if (chars[i] == '"' && prev != '\\') qtct <- qtct + 1L
+    if (chars[i] == char && (opbr == 0L && qtct %% 2L == 0L)) {
       return(TRUE)
     }
+    prev <- chars[i]
   }
   return(FALSE)
 }
