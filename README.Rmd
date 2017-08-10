@@ -27,10 +27,12 @@ devtools::install_github('chiefBiiko/jsonmatch')
 
 `jsonmatch::jsonmatch(json, pattern, auto_unbox=FALSE, strict=TRUE)`
 
-+ `json` Character. In-memory `JSON` string or filename. **required**
-+ `pattern` Character. Subset pattern. **required**
-+ `auto_unbox` Logical. Unbox `JSON`? Default: `FALSE`. **optional**
-+ `strict` Logical. Only allow valid `JSON`? Default: `TRUE`. **optional**
++ `json` character. In-memory `JSON` string or filename. **required**
++ `pattern` character. Subset pattern. **required**
++ `auto_unbox` logical. Unbox `JSON`? Default: `FALSE`. **optional**
++ `strict` logical. Only allow valid `JSON`? Default: `TRUE`. **optional**
+
+**Return** character, json. `JSON` subset.
 
 `pattern` allows matching keys of `JSON` arrays and objects. Its syntax rules are simple:
 
