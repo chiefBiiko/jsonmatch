@@ -63,6 +63,12 @@ cat('gangs:\n', gangs, sep='')
 
 ***
 
+## TODO
+
++ elaborate tests
+
+***
+
 ## License
 
 MIT
